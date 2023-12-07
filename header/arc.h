@@ -8,9 +8,11 @@ struct Arc;
 typedef struct Noeud {
     unsigned int id;
     struct Arc **sortant; //array of outgoing edge
-    unsigned int nb_arc_sortant; //number of outgoing edge
+    unsigned int nb_arc_sortant; //current number of outgoing edge
+    unsigned int max_arc_sortant; //max number of outgoing edge
     struct Arc **entrant; //array of incoming edge
-    unsigned int nb_arc_entrant; //numbr of incoming edge
+    unsigned int nb_arc_entrant; //current numbr of incoming edge
+    unsigned int max_arc_entrant; //max number of incoming edge
 } Noeud;
 
 // Arc struct definition
@@ -30,10 +32,12 @@ typedef struct Arc {
 #define G_DANGER_INDEX 4
 #define G_AMENAGEMENT_INDEX 5
 
+#define DEFAULT_NEIGHBOURS 20 // by experiences it seems that there is never a node with more than 20 neighbours
+
 unsigned int get_nb_node(char*** csv_matrix, int nb_row);
 int minDistance(double dist[], bool markedVertex[], int V);
 void dijkstra(struct Noeud *graph, int src, int dest, int V);
 Arc *createArc(int id, double dist, double danger, Noeud *pred, Noeud *succ);
-void createGraphFromCSV(const char *filename, Noeud **graph, int *numNoeuds);
+void createGraphFromCSV(const char *filename, Noeud **graph,Arc*** arcArray, int *numNoeuds, int * nbArcs);
 
 #endif

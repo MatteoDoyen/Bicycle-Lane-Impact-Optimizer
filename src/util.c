@@ -1,4 +1,5 @@
 #include "../header/util.h"
+#include "../header/cJSON.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -81,4 +82,49 @@ void freeCSVMatrix(char ***matrix, int numRows, int numCols)
         free(matrix[i]);
     }
     free(matrix);
+}
+
+ unsigned int *parseJsonIntegerArray(const char *json, unsigned int *nb_element)
+{
+    cJSON *root = cJSON_Parse(json);
+    if (!root)
+    {
+        fprintf(stderr, "Error parsing JSON.\n");
+        return NULL;
+    }
+
+    if (!cJSON_IsArray(root))
+    {
+        fprintf(stderr, "JSON is not an array.\n");
+        cJSON_Delete(root);
+        return NULL;
+    }
+
+    int arraySize = cJSON_GetArraySize(root);
+    *nb_element = arraySize;
+    unsigned int *resultArray = ( unsigned int *)malloc(arraySize * sizeof( unsigned int));
+
+    if (!resultArray)
+    {
+        fprintf(stderr, "Memory allocation failed.\n");
+        cJSON_Delete(root);
+        return NULL;
+    }
+
+    for (int i = 0; i < arraySize; ++i)
+    {
+        cJSON *item = cJSON_GetArrayItem(root, i);
+        if (!cJSON_IsNumber(item))
+        {
+            fprintf(stderr, "Array element at index %d is not a number.\n", i);
+            free(resultArray);
+            cJSON_Delete(root);
+            return NULL;
+        }
+
+        resultArray[i] = item->valueint;
+    }
+
+    cJSON_Delete(root);
+    return resultArray;
 }

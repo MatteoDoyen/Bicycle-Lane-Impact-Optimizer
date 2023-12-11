@@ -37,7 +37,7 @@ int minDistance(double dist[], bool markedVertex[], int V)
 }
 
 // Dijkstra's algorithm to find the shortest path between two vertices
-void dijkstra(struct Noeud *graph, int src, int dest, int V)
+double djikstra(struct Noeud *graph, int src, int dest, int V)
 {
     double *dist = (double *)malloc(V * sizeof(double));
     bool *markedVertex = (bool *)malloc(V * sizeof(bool));
@@ -81,21 +81,22 @@ void dijkstra(struct Noeud *graph, int src, int dest, int V)
     }
 
     // Print the shortest path from source to destination
-    printf("Shortest Path from %d to %d:\n", src, dest);
-    int current = dest;
-    while (current != -1)
-    {
-        printf("%d <- ", current);
-        current = parent[current];
-    }
-    printf("\n");
+    // printf("Shortest Path from %d to %d:\n", src, dest);
+    // int current = dest;
+    // while (current != -1)
+    // {
+    //     printf("%d <- ", current);
+    //     current = parent[current];
+    // }
+    // printf("\n");
 
-    // Print the total distance of the shortest path
-    printf("Total Distance: %f\n", dist[dest]);
+    // // Print the total distance of the shortest path
+    // printf("Total Distance: %f\n", dist[dest]);
 
     free(dist);
     free(markedVertex);
     free(parent);
+    return dist[dest];
 }
 
 

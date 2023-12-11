@@ -29,9 +29,11 @@ typedef struct
     unsigned int nb_chemin;
     unsigned int *visibilite;
     unsigned int nb_visibilite;
+    double djikstra_dist;
 } trace_t;
 
 trace_t *get_traces(char *csv_path, char *csv_delimiter, int *nb_traces);
+bool visibiliteIsInArc(trace_t *traces, Arc * arc);
 bool tronconIsInTrace(trace_t *traces, Arc * arc);
 
 #endif

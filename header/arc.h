@@ -36,7 +36,7 @@ typedef struct Arc {
 
 unsigned int get_nb_node(char*** csv_matrix, int nb_row);
 int minDistance(double dist[], bool markedVertex[], int V);
-void dijkstra(struct Noeud *graph, int src, int dest, int V);
+double djikstra(struct Noeud *graph, int src, int dest, int V);
 Arc *createArc(int id, double dist, double danger, Noeud *pred, Noeud *succ);
 void createGraphFromCSV(const char *filename, Noeud **graph,Arc*** arcArray, int *numNoeuds, int * nbArcs);
 

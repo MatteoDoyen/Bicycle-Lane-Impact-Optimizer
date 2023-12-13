@@ -25,6 +25,7 @@ typedef struct Arc {
     struct Noeud *predecesseur;
 } Arc;
 
+
 #define G_ID_INDEX 0
 #define G_NODEI_INDEX 1
 #define G_NODEJ_INDEX 2
@@ -34,9 +35,8 @@ typedef struct Arc {
 
 #define DEFAULT_NEIGHBOURS 20 // by experiences it seems that there is never a node with more than 20 neighbours
 
+
 unsigned int get_nb_node(char*** csv_matrix, int nb_row);
-int minDistance(double dist[], bool markedVertex[], int V);
-double djikstra(struct Noeud *graph, int src, int dest, int V);
 Arc *createArc(int id, double dist, double danger, Noeud *pred, Noeud *succ);
 void createGraphFromCSV(const char *filename, Noeud **graph,Arc*** arcArray, int *numNoeuds, int * nbArcs);
 

@@ -7,6 +7,9 @@
 #include <stdlib.h>
 #include <float.h>
 
+
+
+
 unsigned int get_nb_node(char*** csv_matrix, int nb_row){
     unsigned int numNode=0;
     unsigned int node_i,node_j;
@@ -19,85 +22,9 @@ unsigned int get_nb_node(char*** csv_matrix, int nb_row){
     }
     return numNode+1;
 }
-// Function to find the vertex with the minimum distance value
-int minDistance(double dist[], bool markedVertex[], int V)
-{
-    double min = DBL_MAX;
-    int min_index = -1;
 
-    for (int v = 0; v < V; v++)
-    {
-        if ((markedVertex[v] == false) && dist[v] < min)
-        {
-            min = dist[v];
-            min_index = v;
-        }
-    }
-    return min_index;
-}
 
-// Dijkstra's algorithm to find the shortest path between two vertices
-double djikstra(struct Noeud *graph, int src, int dest, int V)
-{
-    double *dist = (double *)malloc(V * sizeof(double));
-    bool *markedVertex = (bool *)malloc(V * sizeof(bool));
-    int *parent = (int *)malloc(V * sizeof(int));
-    int dest_vertex_id;
 
-    // Initialize distances, set all vertices as not yet included in the shortest path tree
-    for (int i = 0; i < V; i++)
-    {
-        dist[i] = DBL_MAX;
-        markedVertex[i] = false;
-    }
-
-    // Distance from source to itself is always 0
-    dist[src] = 0;
-
-    // Parent of source is itself
-    parent[src] = -1;
-
-    // Find the shortest path for all vertices
-    for (int count = 0; count < V - 1; count++)
-    {
-        // Pick the minimum distance vertex from the set of vertices not yet processed
-        int u = minDistance(dist, markedVertex, V);
-        if (u == -1)
-        {
-            break;
-        }
-        // Mark the picked vertex as processed
-        markedVertex[u] = true;
-        // Update dist value of the adjacent vertices
-        for (unsigned int arc_i = 0; arc_i < graph[u].nb_arc_sortant; arc_i++)
-        {
-            dest_vertex_id = graph[u].sortant[arc_i]->succ->id;
-            if (!markedVertex[dest_vertex_id] && graph[u].sortant[arc_i] != NULL && (dist[u] + graph[u].sortant[arc_i]->dist < dist[dest_vertex_id]))
-            {
-                dist[dest_vertex_id] = dist[u] + graph[u].sortant[arc_i]->dist;
-                parent[dest_vertex_id] = u;
-            }
-        }
-    }
-
-    // Print the shortest path from source to destination
-    // printf("Shortest Path from %d to %d:\n", src, dest);
-    // int current = dest;
-    // while (current != -1)
-    // {
-    //     printf("%d <- ", current);
-    //     current = parent[current];
-    // }
-    // printf("\n");
-
-    // // Print the total distance of the shortest path
-    // printf("Total Distance: %f\n", dist[dest]);
-
-    free(dist);
-    free(markedVertex);
-    free(parent);
-    return dist[dest];
-}
 
 
 

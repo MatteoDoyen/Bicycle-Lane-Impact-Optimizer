@@ -1,13 +1,10 @@
 #include "../header/arc.h"
 #include "../header/trace.h"
+#include "../header/djikstra.h"
 #include <stdlib.h>
+#include <stdbool.h>
 
-typedef struct {
-    unsigned int id;
-    double distance;
-}result_t;
-
-#define BUDGET_MAX 15
+#define BUDGET 250
 
 int main()
 {
@@ -21,75 +18,67 @@ int main()
    
     // int source = 1538;  // Source vertex
     // int destination = 1106;  // Destination vertex
+    double * dist_array;
+    int nbTrace;
 
-    // dijkstra(graph, source, destination, nbNoeuds);
 
+    trace_t *traces = get_traces("./data/artificiel/data_path.csv", ";", &nbTrace);
+    djikstra(graph, nbNoeuds, &dist_array, &traces[0]);
 
-    result_t * resultat = malloc(sizeof(result_t)*nbArc);
-    unsigned int result_index = 0;
     
-    int trace_nb;
-    double cost;
-    double budget= 0;
-    
+    long double budget_left = BUDGET;
+    unsigned int arc_id_to_optimize;
+    double new_djikstra_dist;
+    double cost_difference;
+    bool stop = false;
+    bool impact[nbTrace];
 
-    trace_t *traces = get_traces("./data/artificiel/data_path.csv", ";", &trace_nb);
-
-    for (int trace_id = 0; trace_id < trace_nb; trace_id++)
+    for (int i = 0; i < nbTrace; i++)
     {
-        traces[trace_id].djikstra_dist = djikstra(graph,traces[trace_id].origin,traces[trace_id].destination,nbNoeuds);
+        impact[i] = true;
     }
+    while(!stop){
+        // used to know the cost difference, the optimization of the arc would bring for each trace
+        cost_diff_arc_t cost_diff_array[nbArc]; 
+        init_cost_diff_array(cost_diff_array,nbArc);
 
-
-    for (int path_id = 0; path_id < trace_nb; path_id++)
-    {
-
-        // if path is not already optimised
-        if (arcArray[path_id]->danger != arcArray[path_id]->dist){
+        for (int trace_id = 0; trace_id < nbTrace && impact[trace_id]; trace_id++)
+        {
             
-            //optimize the path so that we can test its impact on the algorithm
-            arcArray[path_id]->danger = arcArray[path_id]->dist;
-            for (int trace_id = 0; trace_id < trace_nb; trace_id++)
+
+            impact[trace_id]=false;
+            traces[trace_id].djikstra_dist = djikstra(graph, nbNoeuds, &traces[trace_id].backward_djikstra, &traces[trace_id]);
+            djikstra(graph, nbNoeuds, &traces[trace_id].foward_djikstra, &traces[trace_id]);
+
+            for (int path_id = 0; path_id < nbArc; path_id++)
             {
-                if(budget>BUDGET_MAX){
-                    printf("budget max\n");
-                    return 0;
-                }
-                if (tronconIsInTrace(&traces[trace_id], arcArray[path_id]))
-                {
-                    cost = djikstra(graph,traces[trace_id].origin,traces[trace_id].destination,nbNoeuds);
-                    // printf("dedans %f\n",cost);
-                    if(cost < traces[trace_id].djikstra_dist){
-                        printf("inf  %f\n",traces[trace_id].djikstra_dist-cost);
-                        traces[trace_id].djikstra_dist = cost;
-                        resultat[result_index].id = path_id;
-                        resultat[result_index].distance = arcArray[path_id]->dist;
-                        budget+=arcArray[path_id]->dist;
-                        result_index++;
+                //if the edge's vertexes are in the visibility of the trace
+                if(arcIsInVisiblite(&traces[trace_id], arcArray[path_id])){
+                    // old_dist =  updated_dist(arcArray[path_id],&traces[trace_id]);
+                    //if not already optimized
+                    if(arcArray[path_id]->dist != arcArray[path_id]->danger){
+                        //optimizing an edge is making its danger equal to its distance
+                        arcArray[path_id]->danger = arcArray[path_id]->dist;
                     }
-                    break;
+                    new_djikstra_dist =  updated_dist(arcArray[path_id],&traces[trace_id]);
+                    cost_difference = traces[trace_id].djikstra_dist-new_djikstra_dist;
+                    if(cost_difference>0){
+                        new_cost_diff(trace_id,cost_difference,&cost_diff_array[path_id]);
+                        // print_cost_diff(cost_diff_array,nbArc);
+                        // return 0;
+                        break;
+                    }
                 }
             }
+            print_cost_diff(cost_diff_array,nbArc);
+            break;
         }
-        else{
-            // next path
-            continue;
-        }
+        arc_id_to_optimize=-1;
+        get_max_arc_to_optimize(cost_diff_array,nbArc,&arc_id_to_optimize,&budget_left);
+        break;
     }
-    printf("sortie\n");
-     for (unsigned int i = 0; i < result_index; i++)
-    {
-        printf("%d %f\n",resultat[result_index].id,resultat[result_index].distance);
-    }
-    // Free allocated memory
-    free(graph);
-    // TODO => free arc array
+    
+
 
     return 0;
 }
-
-/*
-- deux djikstras par trace
-- 
-
-*/

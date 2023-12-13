@@ -1,49 +1,31 @@
 #include "trace.h"
+#include <stdbool.h>
 #include "../header/util.h"
 
-typedef struct
+
+bool arcIsInVisiblite(trace_t *traces, Arc *arc)
 {
-    double dist;
-    int parent;
-} DijkstraCache;
 
+    bool succ_in = false;
+    bool pred_in = false;
 
-/// update the distance in the cached djikstra
-/// here the vertex already has an updated distance
-// void update_trace_dist(DijkstraCache **cache, Arc *arc, Noeud **noeudArray)
-// {
-//     Noeud *succ = arc->succ;
-//     int id = succ->id;
-//     int parent = cache[succ->id]->parent;
-
-//     for (int i = 0; i < succ->nb_arc_sortant; i++)
-//     {
-//         id = succ->sortant[i]->id;
-//         parent = cache[id]->parent;
-
-//         // works if parent is the successor
-//         if (cache[parent]->dist >= cache[id]->dist)
-//         {
-//             cache[id]->dist = (cache[id]->dist - cache[parent]->dist) + arc->dist;
-//             cache[id]->parent = succ->id;
-//         }
-//     }
-
-//     // process new dist
-//     cache[id]->dist = cache[parent]->dist + arc->dist;
-// }
-
-bool visibiliteIsInArc(trace_t *traces, Arc *arc)
-{
     for (unsigned int i = 0; i < traces->nb_visibilite; i++)
     {
-        if (traces->visibilite[i] == arc->succ->id || traces->visibilite[i] == arc->predecesseur->id)
+        // if the id of the successor vertex or the predecessor vertex is in the visibility array
+        // then returns true
+        if (traces->visibilite[i] == arc->succ->id)
         {
-            // printf("chem %d succ %d pred %d\n",traces->visibilite[i],arc->succ->id,arc->predecesseur->id);
-            return true;
+            succ_in=true;
+        }
+        else if (traces->visibilite[i] == arc->predecesseur->id)
+        {
+            pred_in=true;
+        }
+        if(pred_in && succ_in){
+            break;
         }
     }
-    return false;
+    return (succ_in && pred_in);
 }
 
 bool tronconIsInTrace(trace_t *traces, Arc *arc)

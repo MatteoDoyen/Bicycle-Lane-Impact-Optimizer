@@ -23,12 +23,6 @@ unsigned int get_nb_node(char*** csv_matrix, int nb_row){
     return numNode+1;
 }
 
-
-
-
-
-
-
 // Function to create a new Arc
 Arc *createArc(int id, double dist, double danger, Noeud *pred, Noeud *succ)
 {

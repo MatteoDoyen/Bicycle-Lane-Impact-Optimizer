@@ -1,7 +1,19 @@
-#include "trace.h"
+#include "../header/trace.h"
 #include <stdbool.h>
 #include "../header/util.h"
 
+bool vertexIsInVisiblite(trace_t *traces, unsigned int vertex_id)
+{
+
+    for (unsigned int i = 0; i < traces->nb_visibilite; i++)
+    {
+        if (traces->visibilite[i] == vertex_id)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 bool arcIsInVisiblite(trace_t *traces, Arc *arc)
 {
@@ -69,6 +81,9 @@ trace_t *get_traces(char *csv_path, char *csv_delimiter, int *nb_traces)
         traces[i - 1].destination = atoi(csv_matrix[i][T_DESTINATION_INDEX]);
         traces[i - 1].visibilite = parseJsonIntegerArray(csv_matrix[i][T_VISIBILITE_INDEX], &traces[i - 1].nb_visibilite);
         traces[i - 1].chemin = parseJsonIntegerArray(csv_matrix[i][T_CHEMIN_INDEX], &traces[i - 1].nb_chemin);
+        traces[i - 1].cps_djikstra_danger = atof(csv_matrix[i][T_DANGER_CPS_INDEX]);
+        traces[i - 1].cps_djikstra_dist = atof(csv_matrix[i][T_DIST_CPS_INDEX]);
+        traces[i - 1].djikstra_sp = parseJsonIntegerArray(csv_matrix[i][T_CPC_INDEX],&traces[i - 1].nb_djikstra_sp);
     }
     freeCSVMatrix(csv_matrix, nb_row, nb_col);
     *nb_traces = (nb_row - 1);

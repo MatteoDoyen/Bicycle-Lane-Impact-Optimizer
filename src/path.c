@@ -84,6 +84,8 @@ void get_paths(char *csv_path, char *csv_delimiter,path_t ** paths_ref, int *nb_
         paths[id_offset].cps_djikstra_danger = atof(csv_matrix[i][T_DANGER_CPS_INDEX]);
         paths[id_offset].cps_djikstra_dist = atof(csv_matrix[i][T_DIST_CPS_INDEX]);
         paths[id_offset].djikstra_sp = parseJsonIntegerArray(csv_matrix[i][T_CPC_INDEX],&paths[id_offset].nb_djikstra_sp);
+        paths[id_offset].foward_djikstra = NULL;
+        paths[id_offset].backward_djikstra = NULL;
     }
     freeCSVMatrix(csv_matrix, nb_row, nb_col);
     *nb_paths = (nb_row - 1);

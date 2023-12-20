@@ -19,24 +19,44 @@ void tearDown(void)
     // clean stuff up here
 }
 
-void test_vertices_out_array_scaling(void){
-    
-    vertex_t vertices[DEFAULT_NEIGHBOURS+2];
-    for (unsigned int i = 0; i < DEFAULT_NEIGHBOURS+2; i++)
-    {
-        
-       vertices[i].nb_edges_in = 0;
-       vertices[i].max_edges_in = DEFAULT_NEIGHBOURS;
-       vertices[i].in_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
-       vertices[i].nb_edges_out = 0;
-       vertices[i].max_edges_out = DEFAULT_NEIGHBOURS;
-       vertices[i].out_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
-       vertices[i].id = i;
+/*
 
-       if(i==0){
-        continue;
-       }
-        create_edge(i,1,1,&vertices[0],&vertices[i]);
+*/
+
+// void test_get_max_edge_to_optimize(void){
+//     cost_diff_edge_t *diff_array;
+//     unsigned int nb_edge;
+//     int *edge_id_to_optimize;
+//     long double *budget_left;
+
+//     get_max_edge_to_optimize(diff_array, nb_edge, edge_id_to_optimize,budget_left);
+// }
+
+void test_updated_dist(void){
+
+}
+
+void test_vertices_out_array_scaling(void)
+{
+    vertex_t vertices[DEFAULT_NEIGHBOURS + 2];
+    edge_t **edges=calloc(1,sizeof(edge_t *)*(DEFAULT_NEIGHBOURS+2));
+
+    for (unsigned int i = 0; i < DEFAULT_NEIGHBOURS + 2; i++)
+    {
+        vertices[i].nb_edges_in = 0;
+        vertices[i].max_edges_in = DEFAULT_NEIGHBOURS;
+        vertices[i].in_edges = calloc(1, sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        vertices[i].nb_edges_out = 0;
+        vertices[i].max_edges_out = DEFAULT_NEIGHBOURS;
+        vertices[i].out_edges = calloc(1, sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        vertices[i].id = i;
+
+        // first vertex is the predecessor vertex for all edges
+        if (i == 0)
+        {
+            continue;
+        }
+        edges[i] = create_edge(i, 1, 1, &vertices[0], &vertices[i]);
     }
     unsigned int max_id = 0;
     unsigned int current_id;
@@ -45,33 +65,39 @@ void test_vertices_out_array_scaling(void){
         current_id = vertices[0].out_edges[i]->succ->id;
         max_id = current_id > max_id ? current_id : max_id;
     }
-    TEST_ASSERT_EQUAL_MESSAGE(DEFAULT_NEIGHBOURS+1,max_id,"probleme");
-    TEST_ASSERT_EQUAL_MESSAGE(DEFAULT_NEIGHBOURS*2,vertices[0].max_edges_out,"probleme");
-    for (int i = 0; i < DEFAULT_NEIGHBOURS+2; i++)
+    TEST_ASSERT_EQUAL_MESSAGE(DEFAULT_NEIGHBOURS + 1, max_id, "probleme");
+    TEST_ASSERT_EQUAL_MESSAGE(DEFAULT_NEIGHBOURS * 2, vertices[0].max_edges_out, "probleme");
+    for (int i = 0; i < DEFAULT_NEIGHBOURS + 2; i++)
     {
         free(vertices[i].in_edges);
         free(vertices[i].out_edges);
+        free(edges[i]);
     }
+    free(edges);
 }
 
-void test_vertices_in_array_scaling(void){
-    
-    vertex_t vertices[DEFAULT_NEIGHBOURS+2];
-    for (unsigned int i = 0; i < DEFAULT_NEIGHBOURS+2; i++)
-    {
-        
-       vertices[i].nb_edges_in = 0;
-       vertices[i].max_edges_in = DEFAULT_NEIGHBOURS;
-       vertices[i].in_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
-       vertices[i].nb_edges_out = 0;
-       vertices[i].max_edges_out = DEFAULT_NEIGHBOURS;
-       vertices[i].out_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
-       vertices[i].id = i;
+void test_vertices_in_array_scaling(void)
+{
 
-       if(i==0){
-        continue;
-       }
-        create_edge(i,1,1,&vertices[i],&vertices[0]);
+    vertex_t vertices[DEFAULT_NEIGHBOURS + 2];
+    edge_t **edges=calloc(1,sizeof(edge_t *)*(DEFAULT_NEIGHBOURS+2));
+    for (unsigned int i = 0; i < DEFAULT_NEIGHBOURS + 2; i++)
+    {
+
+        vertices[i].nb_edges_in = 0;
+        vertices[i].max_edges_in = DEFAULT_NEIGHBOURS;
+        vertices[i].in_edges = calloc(1, sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        vertices[i].nb_edges_out = 0;
+        vertices[i].max_edges_out = DEFAULT_NEIGHBOURS;
+        vertices[i].out_edges = calloc(1, sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        vertices[i].id = i;
+
+        // first vertex is the successor vertex for all edges
+        if (i == 0)
+        {
+            continue;
+        }
+        edges[i] = create_edge(i, 1, 1, &vertices[i], &vertices[0]);
     }
     unsigned int max_id = 0;
     unsigned int current_id;
@@ -80,13 +106,15 @@ void test_vertices_in_array_scaling(void){
         current_id = vertices[0].in_edges[i]->pred->id;
         max_id = current_id > max_id ? current_id : max_id;
     }
-    TEST_ASSERT_EQUAL_MESSAGE(DEFAULT_NEIGHBOURS+1,max_id,"probleme");
-    TEST_ASSERT_EQUAL_MESSAGE(DEFAULT_NEIGHBOURS*2,vertices[0].max_edges_in,"probleme");
-    for (int i = 0; i < DEFAULT_NEIGHBOURS+2; i++)
+    TEST_ASSERT_EQUAL_MESSAGE(DEFAULT_NEIGHBOURS + 1, max_id, "probleme");
+    TEST_ASSERT_EQUAL_MESSAGE(DEFAULT_NEIGHBOURS * 2, vertices[0].max_edges_in, "probleme");
+    for (int i = 0; i < DEFAULT_NEIGHBOURS + 2; i++)
     {
         free(vertices[i].in_edges);
         free(vertices[i].out_edges);
+        free(edges[i]);
     }
+    free(edges);
 }
 
 void test_djikstra_forward_vs_backward_path(void)
@@ -103,9 +131,9 @@ void test_djikstra_forward_vs_backward_path(void)
     int current;
     int *diff_path;
 
-    get_graph("./data_test/data_graphe.csv",";", &graph, &edge_array, &nb_vertices, &nb_edges);
-
+    get_graph("./data_test/data_graphe.csv", ";", &graph, &edge_array, &nb_vertices, &nb_edges);
     get_paths("./data_test/data_path.csv", ";", &paths, &nb_paths);
+    
     for (int i = 0; i < nb_paths; i++)
     {
         djikstra_forward(graph, nb_vertices, &dist_array_forward, &parent_array_forward, &paths[i]);
@@ -162,9 +190,9 @@ void test_djikstra_forward_vs_backward_cost(void)
     double *dist_array_forward, *dist_array_backward;
     int nb_paths;
     double cost_forward, cost_backward;
-    char str[80];
+    // char str[80];
 
-    get_graph("./data_test/data_graphe.csv",";", &graph, &edge_array, &nb_vertices, &nb_edges);
+    get_graph("./data_test/data_graphe.csv", ";", &graph, &edge_array, &nb_vertices, &nb_edges);
     get_paths("./data_test/data_path.csv", ";", &paths, &nb_paths);
 
     for (int i = 0; i < nb_paths; i++)
@@ -172,8 +200,8 @@ void test_djikstra_forward_vs_backward_cost(void)
         cost_forward = djikstra_forward(graph, nb_vertices, &dist_array_forward, NULL, &paths[i]);
         cost_backward = djikstra_backward(graph, nb_vertices, &dist_array_backward, NULL, &paths[i]);
 
-        sprintf(str, "path %d failed, incorrect cps calculated", i);
-        TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.001, cost_forward, cost_backward, str);
+        // sprintf(str, "path %d failed, incorrect cps calculated", i);
+        TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.001, cost_forward, cost_backward, "salut");
 
         free(dist_array_forward);
         free(dist_array_backward);
@@ -189,15 +217,12 @@ void test_djikstra_forward(void)
     vertex_t *graph;
     edge_t **edge_array;
     path_t *paths;
-    int nb_vertices;
-    int nb_edges;
+    int nb_vertices, nb_edges, nb_paths;
     double *dist_array;
-    int nb_paths;
-    double cost;
-    double expected_cost;
-    char str[80];
+    double cost, expected_cost;
+    // char str[80];
 
-    get_graph("./data_test/data_graphe.csv",";", &graph, &edge_array, &nb_vertices, &nb_edges);
+    get_graph("./data_test/data_graphe.csv", ";", &graph, &edge_array, &nb_vertices, &nb_edges);
     get_paths("./data_test/data_path.csv", ";", &paths, &nb_paths);
 
     for (int i = 0; i < nb_paths; i++)
@@ -205,10 +230,10 @@ void test_djikstra_forward(void)
         cost = djikstra_forward(graph, nb_vertices, &dist_array, NULL, &paths[i]);
         expected_cost = calc_path_cps(paths[i].cps_djikstra_dist, paths[i].danger, paths[i].profil);
 
-        sprintf(str, "path %d failed, incorrect cps calculated", i);
-        TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.000001, expected_cost, cost, str);
-
+        // sprintf(str, "path %d failed, incorrect cps calculated", i);
+        TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.000001, expected_cost, cost, "str");
         free(dist_array);
+
     }
     free_edge(edge_array, nb_edges);
     free_graph(graph, nb_vertices);
@@ -266,7 +291,6 @@ void test_min_distance(void)
     TEST_ASSERT_EQUAL(1, min_distance(dist, vertices_to_visit));
 }
 
-// not needed when using generate_test_runner.rb
 int main(void)
 {
     UNITY_BEGIN();

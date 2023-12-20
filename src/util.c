@@ -40,13 +40,13 @@ char ***readCSVFile(const char *filename, int *numRows, int *numCols, char *deli
     fseek(file, 0, SEEK_SET);
 
     // Allocate memory for the matrix
-    char ***matrix = (char ***)malloc(*numRows * sizeof(char **));
+    char ***matrix = (char ***)calloc(1,*numRows * sizeof(char **));
     for (int i = 0; i < *numRows; ++i)
     {
-        matrix[i] = (char **)malloc(*numCols * sizeof(char *));
+        matrix[i] = (char **)calloc(1,*numCols * sizeof(char *));
         for (int j = 0; j < *numCols; ++j)
         {
-            matrix[i][j] = (char *)malloc(MAX_LINE_SIZE * sizeof(char));
+            matrix[i][j] = (char *)calloc(1,MAX_LINE_SIZE * sizeof(char));
         }
     }
 
@@ -102,7 +102,7 @@ void freeCSVMatrix(char ***matrix, int numRows, int numCols)
 
     int arraySize = cJSON_GetArraySize(root);
     *nb_element = arraySize;
-    unsigned int *resultArray = ( unsigned int *)malloc(arraySize * sizeof( unsigned int));
+    unsigned int *resultArray = ( unsigned int *)calloc(1,arraySize * sizeof( unsigned int));
 
     if (!resultArray)
     {

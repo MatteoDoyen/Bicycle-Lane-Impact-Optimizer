@@ -42,13 +42,10 @@ bool edge_is_in_visibilite(path_t *paths, edge_t *edge)
 
 bool troncon_is_in_path(path_t *paths, edge_t *edge)
 {
-    // printf("là\n");
     for (unsigned int i = 0; i < paths->nb_chemin; i++)
     {
         if (paths->chemin[i] == edge->succ->id || paths->chemin[i] == edge->pred->id)
         {
-            // printf("chem %d succ %d pred%d\n",paths->chemin[i],edge->succ->id,edge->pred->id);
-            // printf("origin %d dest %d id %d\n",paths->origin,paths->destination,edge->id);
             return true;
         }
     }

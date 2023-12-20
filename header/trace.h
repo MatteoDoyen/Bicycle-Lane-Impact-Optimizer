@@ -1,7 +1,7 @@
 #ifndef TRACE_H
 #define TRACE_H
 
-#include "../header/arc.h"
+#include "../header/edge.h"
 #include <stdio.h>
 #include <string.h>
 #include <string.h>
@@ -41,10 +41,10 @@ typedef struct
     double *backward_djikstra;
 } trace_t;
 
-trace_t *get_traces(char *csv_path, char *csv_delimiter, int *nb_traces);
-bool arcIsInVisiblite(trace_t *traces, Arc *arc);
-bool tronconIsInTrace(trace_t *traces, Arc *arc);
-bool vertexIsInVisiblite(trace_t *traces, unsigned int vertex_id);
+void get_traces(char *csv_path, char *csv_delimiter,trace_t **traces, int *nb_traces);
+bool edge_is_in_visibilite(trace_t *traces, edge_t *edge);
+bool troncon_is_in_trace(trace_t *traces, edge_t *edge);
+bool vertex_is_in_visibilite(trace_t *traces, unsigned int vertex_id);
 void free_traces(trace_t* traces,int nb_traces);
 
 #endif

@@ -1,50 +1,50 @@
 #include "../header/djikstra.h"
 #include <stdbool.h>
 
-void init_cost_diff_array(cost_diff_arc_t *diff_array, unsigned int nbArc)
+void init_cost_diff_array(cost_diff_edge_t *diff_array, unsigned int nbedge_t)
 {
-    for (unsigned int i = 0; i < nbArc; i++)
+    for (unsigned int i = 0; i < nbedge_t; i++)
     {
         diff_array[i].djikstra_cost_diff = 0;
     }
 }
 
-void get_max_arc_to_optimize(cost_diff_arc_t *diff_array, unsigned int nbArc, int *arc_id_to_optimize, long double *budget_left)
+void get_max_edge_to_optimize(cost_diff_edge_t *diff_array, unsigned int nbedge_t, int *edge_id_to_optimize, long double *budget_left)
 {
     double max_cost_saved = 0;
-    unsigned int max_cost_arc_id;
-    // cost_diff_arc_t *temp;
+    unsigned int max_cost_edge_id;
+    // cost_diff_edge_t *temp;
 
-    for (unsigned int id_arc = 0; id_arc < nbArc; id_arc++)
+    for (unsigned int id_edge = 0; id_edge < nbedge_t; id_edge++)
     {
 
-        if (diff_array[id_arc].dist <= (*budget_left) && diff_array[id_arc].djikstra_cost_diff > max_cost_saved)
+        if (diff_array[id_edge].dist <= (*budget_left) && diff_array[id_edge].djikstra_cost_diff > max_cost_saved)
         {
-            max_cost_saved = diff_array[id_arc].djikstra_cost_diff;
-            max_cost_arc_id = id_arc;
+            max_cost_saved = diff_array[id_edge].djikstra_cost_diff;
+            max_cost_edge_id = id_edge;
         }
     }
     if (max_cost_saved > 0)
     {
-        *arc_id_to_optimize = max_cost_arc_id;
-        printf("%d %f", max_cost_arc_id, max_cost_saved);
+        *edge_id_to_optimize = max_cost_edge_id;
+        printf("%d %f", max_cost_edge_id, max_cost_saved);
     }
 }
 
-double cost_function(trace_t *trace, Arc *arc)
+double cost_function(trace_t *trace, edge_t *edge)
 {
-    return (trace->profil * arc->dist) + ((1 - trace->profil) * arc->danger);
-    // return arc->dist;
+    return (trace->profil * edge->dist) + ((1 - trace->profil) * edge->danger);
+    // return edge->dist;
 }
 
 /// update the distance in the cached djikstra
 /// here the vertex already has an updated distance
-double updated_dist(Arc *arc, trace_t *trace)
+double updated_dist(edge_t *edge, trace_t *trace)
 {
-    return trace->foward_djikstra[arc->predecesseur->id] + cost_function(trace, arc) + trace->backward_djikstra[arc->succ->id];
+    return trace->foward_djikstra[edge->pred->id] + cost_function(trace, edge) + trace->backward_djikstra[edge->succ->id];
 }
 
-double djikstra_forward(struct Noeud *graph, int V, double **dist_array,int** parent_array, trace_t *trace)
+double djikstra_forward(struct vertex_t *graph, int V, double **dist_array,int** parent_array, trace_t *trace)
 {
     (*dist_array) = (double *)calloc(1,V * sizeof(double));
     int * parent;
@@ -81,7 +81,7 @@ double djikstra_forward(struct Noeud *graph, int V, double **dist_array,int** pa
     verticesToVisit = calloc(1,sizeof(list_node_t));
     verticesToVisit->vertex_id = origin;
     verticesToVisit->next = NULL;
-    for (unsigned int i = 0; i < graph[origin].nb_arc_sortant; i++)
+    for (unsigned int i = 0; i < graph[origin].nb_edges_out; i++)
     {
         dest_vertex_id = graph[origin].sortant[i]->succ->id;
 
@@ -122,16 +122,16 @@ double djikstra_forward(struct Noeud *graph, int V, double **dist_array,int** pa
         free(temp);
 
         // Update dist value of the adjacent vertices
-        for (unsigned int arc_i = 0; arc_i < graph[u].nb_arc_sortant; arc_i++)
+        for (unsigned int edge_i = 0; edge_i < graph[u].nb_edges_out; edge_i++)
         {
-            dest_vertex_id = graph[u].sortant[arc_i]->succ->id;
-            if (!vertexIsInVisiblite(trace, dest_vertex_id))
+            dest_vertex_id = graph[u].sortant[edge_i]->succ->id;
+            if (!vertex_is_in_visibilite(trace, dest_vertex_id))
             {
                 continue;
             }
-            if (!markedVertex[dest_vertex_id] && graph[u].sortant[arc_i] != NULL && ((*dist_array)[u] + cost_function(trace, graph[u].sortant[arc_i]) < (*dist_array)[dest_vertex_id]))
+            if (!markedVertex[dest_vertex_id] && graph[u].sortant[edge_i] != NULL && ((*dist_array)[u] + cost_function(trace, graph[u].sortant[edge_i]) < (*dist_array)[dest_vertex_id]))
             {
-                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(trace, graph[u].sortant[arc_i]);
+                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(trace, graph[u].sortant[edge_i]);
                 parent[dest_vertex_id] = u;
                 if (!toVisitVertex[dest_vertex_id])
                 {
@@ -150,7 +150,7 @@ double djikstra_forward(struct Noeud *graph, int V, double **dist_array,int** pa
     return (*dist_array)[destination];
 }
 
-double djikstra_backward(struct Noeud *graph, int V, double **dist_array,int **parent_array, trace_t *trace)
+double djikstra_backward(struct vertex_t *graph, int V, double **dist_array,int **parent_array, trace_t *trace)
 {
     (*dist_array) = (double *)calloc(1,V * sizeof(double));
     bool markedVertex[V];
@@ -188,9 +188,9 @@ double djikstra_backward(struct Noeud *graph, int V, double **dist_array,int **p
     verticesToVisit = calloc(1,sizeof(list_node_t));
     verticesToVisit->vertex_id = origin;
     verticesToVisit->next = NULL;
-    for (unsigned int i = 0; i < graph[origin].nb_arc_entrant; i++)
+    for (unsigned int i = 0; i < graph[origin].nb_edges_in; i++)
     {
-        dest_vertex_id = graph[origin].entrant[i]->predecesseur->id;
+        dest_vertex_id = graph[origin].entrant[i]->pred->id;
 
         list_node_t *newNode = calloc(1,sizeof(list_node_t));
         toVisitVertex[dest_vertex_id] = true;
@@ -229,16 +229,16 @@ double djikstra_backward(struct Noeud *graph, int V, double **dist_array,int **p
         free(temp);
 
         // Update dist value of the adjacent vertices
-        for (unsigned int arc_i = 0; arc_i < graph[u].nb_arc_entrant; arc_i++)
+        for (unsigned int edge_i = 0; edge_i < graph[u].nb_edges_in; edge_i++)
         {
-            dest_vertex_id = graph[u].entrant[arc_i]->predecesseur->id;
-            if (!vertexIsInVisiblite(trace, dest_vertex_id))
+            dest_vertex_id = graph[u].entrant[edge_i]->pred->id;
+            if (!vertex_is_in_visibilite(trace, dest_vertex_id))
             {
                 continue;
             }
-            if (!markedVertex[dest_vertex_id] && graph[u].entrant[arc_i] != NULL && ((*dist_array)[u] + cost_function(trace, graph[u].entrant[arc_i]) < (*dist_array)[dest_vertex_id]))
+            if (!markedVertex[dest_vertex_id] && graph[u].entrant[edge_i] != NULL && ((*dist_array)[u] + cost_function(trace, graph[u].entrant[edge_i]) < (*dist_array)[dest_vertex_id]))
             {
-                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(trace, graph[u].entrant[arc_i]);
+                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(trace, graph[u].entrant[edge_i]);
                 parent[dest_vertex_id] = u;
                 if (!toVisitVertex[dest_vertex_id])
                 {
@@ -278,7 +278,7 @@ int minDistance(double dist[], list_node_t *vertexToVisit)
 }
 // TODO : REMOVE PARENTS
 //  Dijkstra's algorithm to find the shortest path between two vertices
-double djikstra_test(struct Noeud *graph, int V, double **dist_array, int **parent, trace_t *trace)
+double djikstra_test(struct vertex_t *graph, int V, double **dist_array, int **parent, trace_t *trace)
 {
     (*dist_array) = (double *)calloc(1,V * sizeof(double));
     bool markedVertex[V];
@@ -309,7 +309,7 @@ double djikstra_test(struct Noeud *graph, int V, double **dist_array, int **pare
     verticesToVisit = calloc(1,sizeof(list_node_t));
     verticesToVisit->vertex_id = origin;
     verticesToVisit->next = NULL;
-    for (unsigned int i = 0; i < graph[origin].nb_arc_sortant; i++)
+    for (unsigned int i = 0; i < graph[origin].nb_edges_out; i++)
     {
         dest_vertex_id = graph[origin].sortant[i]->succ->id;
 
@@ -350,16 +350,16 @@ double djikstra_test(struct Noeud *graph, int V, double **dist_array, int **pare
         free(temp);
 
         // Update dist value of the adjacent vertices
-        for (unsigned int arc_i = 0; arc_i < graph[u].nb_arc_sortant; arc_i++)
+        for (unsigned int edge_i = 0; edge_i < graph[u].nb_edges_out; edge_i++)
         {
-            dest_vertex_id = graph[u].sortant[arc_i]->succ->id;
-            if (!vertexIsInVisiblite(trace, dest_vertex_id))
+            dest_vertex_id = graph[u].sortant[edge_i]->succ->id;
+            if (!vertex_is_in_visibilite(trace, dest_vertex_id))
             {
                 continue;
             }
-            if (!markedVertex[dest_vertex_id] && graph[u].sortant[arc_i] != NULL && ((*dist_array)[u] + cost_function(trace, graph[u].sortant[arc_i]) < (*dist_array)[dest_vertex_id]))
+            if (!markedVertex[dest_vertex_id] && graph[u].sortant[edge_i] != NULL && ((*dist_array)[u] + cost_function(trace, graph[u].sortant[edge_i]) < (*dist_array)[dest_vertex_id]))
             {
-                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(trace, graph[u].sortant[arc_i]);
+                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(trace, graph[u].sortant[edge_i]);
                 (*parent)[dest_vertex_id] = u;
 
                 if (!toVisitVertex[dest_vertex_id])

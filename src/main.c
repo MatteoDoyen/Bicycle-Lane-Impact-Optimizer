@@ -1,4 +1,4 @@
-#include "../header/arc.h"
+#include "../header/edge.h"
 #include "../header/trace.h"
 #include "../header/djikstra.h"
 #include <stdlib.h>
@@ -8,26 +8,20 @@
 
 int main()
 {
-    Noeud *graph;
-    Arc** arcArray;
-    int nbNoeuds;
-    int nbArc;
-
-    createGraphFromCSV("./data/artificiel/data_graphe.csv", &graph, &arcArray, &nbNoeuds,&nbArc);
-    // printf("salut %d \n",numNoeuds);
-   
-    // int source = 1538;  // Source vertex
-    // int destination = 1106;  // Destination vertex
+    vertex_t *graph;
+    edge_t** edge_array;
     double * dist_array;
+    int nbvertex_ts;
+    int nbedge_t;
     int nbTrace;
 
+    get_graph("./data/artificiel/data_graphe.csv", &graph, &edge_array, &nbvertex_ts,&nbedge_t);
 
     trace_t *traces = get_traces("./data/artificiel/data_path.csv", ";", &nbTrace);
-    djikstra_forward(graph, nbNoeuds, &dist_array, &traces[0]);
+    djikstra_forward(graph, nbvertex_ts, &dist_array, &traces[0]);
 
-    
     long double budget_left = BUDGET;
-    int arc_id_to_optimize;
+    int edge_id_to_optimize;
     double old_danger;
     double new_djikstra_dist;
     double cost_difference;
@@ -39,47 +33,42 @@ int main()
         impact[i] = true;
     }
     while(!stop){
-        // used to know the cost difference, the optimization of the arc would bring for each trace
-        cost_diff_arc_t cost_diff_array[nbArc]; 
-        init_cost_diff_array(cost_diff_array,nbArc);
+        // used to know the cost difference, the optimization of the edge would bring for each trace
+        cost_diff_edge_t cost_diff_array[nbedge_t]; 
+        init_cost_diff_array(cost_diff_array,nbedge_t);
 
         for (int trace_id = 0; trace_id < nbTrace && impact[trace_id]; trace_id++)
         {
             impact[trace_id]=false;
-            traces[trace_id].djikstra_dist = djikstra_backward(graph, nbNoeuds, &traces[trace_id].backward_djikstra, &traces[trace_id]);
-            djikstra_forward(graph, nbNoeuds, &traces[trace_id].foward_djikstra, &traces[trace_id]);
+            traces[trace_id].djikstra_dist = djikstra_backward(graph, nbvertex_ts, &traces[trace_id].backward_djikstra, &traces[trace_id]);
+            djikstra_forward(graph, nbvertex_ts, &traces[trace_id].foward_djikstra, &traces[trace_id]);
 
-            for (int path_id = 0; path_id < nbArc; path_id++)
+            for (int path_id = 0; path_id < nbedge_t; path_id++)
             {
                 //if the edge's vertexes are in the visibility of the trace
-                // and the arc is not optimized already
-                if(arcIsInVisiblite(&traces[trace_id], arcArray[path_id]) && (arcArray[path_id]->dist != arcArray[path_id]->danger)){
-                    // old_dist =  updated_dist(arcArray[path_id],&traces[trace_id]);
-                    //if not already optimized
+                // and the edge is not optimized already
+                if(edge_is_in_visibilite(&traces[trace_id], edge_array[path_id]) && (edge_array[path_id]->dist != edge_array[path_id]->danger)){
                     
                     //optimizing an edge is making its danger equal to its distance
-                    old_danger = arcArray[path_id]->danger;
-                    arcArray[path_id]->danger = arcArray[path_id]->dist;
+                    old_danger = edge_array[path_id]->danger;
+                    edge_array[path_id]->danger = edge_array[path_id]->dist;
 
-                    new_djikstra_dist =  updated_dist(arcArray[path_id],&traces[trace_id]);
+                    new_djikstra_dist =  updated_dist(edge_array[path_id],&traces[trace_id]);
                     
-                    //unoptimize the arc
-                    arcArray[path_id]->danger = old_danger;
+                    //unoptimize the edge
+                    edge_array[path_id]->danger = old_danger;
                     
                     cost_difference = traces[trace_id].djikstra_dist-new_djikstra_dist;
                     if(cost_difference>0){
-                        // new_cost_diff(trace_id,cost_difference,arcArray[path_id]->dist,&cost_diff_array[path_id]);
-                        // print_cost_diff(cost_diff_array,nbArc);
-                        // return 0;
                         cost_diff_array[path_id].djikstra_cost_diff += cost_difference;
                     }
                 }
             }
-            // print_cost_diff(cost_diff_array,nbArc);
+            // print_cost_diff(cost_diff_array,nbedge_t);
         }
-        arc_id_to_optimize=-1;
-        get_max_arc_to_optimize(cost_diff_array,nbArc,&arc_id_to_optimize,&budget_left);
-        if(arc_id_to_optimize==-1){
+        edge_id_to_optimize=-1;
+        get_max_edge_to_optimize(cost_diff_array,nbedge_t,&edge_id_to_optimize,&budget_left);
+        if(edge_id_to_optimize==-1){
             stop = true;
         }
         else{
@@ -87,9 +76,9 @@ int main()
             {
                 impact[i] = true;
             }
-            budget_left = budget_left-arcArray[arc_id_to_optimize]->dist;
-            arcArray[arc_id_to_optimize]->danger = arcArray[arc_id_to_optimize]->dist;
-            printf(" %f\n", arcArray[arc_id_to_optimize]->dist);
+            budget_left = budget_left-edge_array[edge_id_to_optimize]->dist;
+            edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
+            printf(" %f\n", edge_array[edge_id_to_optimize]->dist);
         }
     }
     return 0;

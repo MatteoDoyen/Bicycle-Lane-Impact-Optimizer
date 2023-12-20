@@ -251,19 +251,19 @@ void test_cost_function(void)
 
     // when the alpha is equal 1, the cost function should return the
     //  edge distance
-    double return_value = cost_function(&path, &edge);
+    double return_value = cost_function(&path.profil, &edge.dist,&edge.danger);
     TEST_ASSERT_EQUAL_DOUBLE(edge.dist, return_value);
 
     // when the alpha is equal 0.5, the cost function should return the
     //  edge distance + the edge danger divided by two
     path.profil = 0.5;
-    return_value = cost_function(&path, &edge);
+    return_value = cost_function(&path.profil, &edge.dist,&edge.danger);
 
     // when the alpha is equal 1, the cost function should return the
     //  edge danger
     TEST_ASSERT_EQUAL_DOUBLE(3.5, return_value);
     path.profil = 0;
-    return_value = cost_function(&path, &edge);
+    return_value = cost_function(&path.profil, &edge.dist,&edge.danger);
     TEST_ASSERT_EQUAL_DOUBLE(edge.danger, return_value);
 }
 

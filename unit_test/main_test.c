@@ -19,6 +19,76 @@ void tearDown(void)
     // clean stuff up here
 }
 
+void test_vertices_out_array_scaling(void){
+    
+    vertex_t vertices[DEFAULT_NEIGHBOURS+2];
+    for (unsigned int i = 0; i < DEFAULT_NEIGHBOURS+2; i++)
+    {
+        
+       vertices[i].nb_edges_in = 0;
+       vertices[i].max_edges_in = DEFAULT_NEIGHBOURS;
+       vertices[i].in_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+       vertices[i].nb_edges_out = 0;
+       vertices[i].max_edges_out = DEFAULT_NEIGHBOURS;
+       vertices[i].out_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+       vertices[i].id = i;
+
+       if(i==0){
+        continue;
+       }
+        create_edge(i,1,1,&vertices[0],&vertices[i]);
+    }
+    unsigned int max_id = 0;
+    unsigned int current_id;
+    for (unsigned int i = 0; i < vertices[0].nb_edges_out; i++)
+    {
+        current_id = vertices[0].out_edges[i]->succ->id;
+        max_id = current_id > max_id ? current_id : max_id;
+    }
+    TEST_ASSERT_EQUAL_MESSAGE(DEFAULT_NEIGHBOURS+1,max_id,"probleme");
+    TEST_ASSERT_EQUAL_MESSAGE(DEFAULT_NEIGHBOURS*2,vertices[0].max_edges_out,"probleme");
+    for (int i = 0; i < DEFAULT_NEIGHBOURS+2; i++)
+    {
+        free(vertices[i].in_edges);
+        free(vertices[i].out_edges);
+    }
+}
+
+void test_vertices_in_array_scaling(void){
+    
+    vertex_t vertices[DEFAULT_NEIGHBOURS+2];
+    for (unsigned int i = 0; i < DEFAULT_NEIGHBOURS+2; i++)
+    {
+        
+       vertices[i].nb_edges_in = 0;
+       vertices[i].max_edges_in = DEFAULT_NEIGHBOURS;
+       vertices[i].in_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+       vertices[i].nb_edges_out = 0;
+       vertices[i].max_edges_out = DEFAULT_NEIGHBOURS;
+       vertices[i].out_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+       vertices[i].id = i;
+
+       if(i==0){
+        continue;
+       }
+        create_edge(i,1,1,&vertices[i],&vertices[0]);
+    }
+    unsigned int max_id = 0;
+    unsigned int current_id;
+    for (unsigned int i = 0; i < vertices[0].nb_edges_in; i++)
+    {
+        current_id = vertices[0].in_edges[i]->pred->id;
+        max_id = current_id > max_id ? current_id : max_id;
+    }
+    TEST_ASSERT_EQUAL_MESSAGE(DEFAULT_NEIGHBOURS+1,max_id,"probleme");
+    TEST_ASSERT_EQUAL_MESSAGE(DEFAULT_NEIGHBOURS*2,vertices[0].max_edges_in,"probleme");
+    for (int i = 0; i < DEFAULT_NEIGHBOURS+2; i++)
+    {
+        free(vertices[i].in_edges);
+        free(vertices[i].out_edges);
+    }
+}
+
 void test_djikstra_forward_vs_backward_path(void)
 {
     vertex_t *graph;
@@ -205,5 +275,7 @@ int main(void)
     RUN_TEST(test_djikstra_forward);
     RUN_TEST(test_djikstra_forward_vs_backward_path);
     RUN_TEST(test_djikstra_forward_vs_backward_cost);
+    RUN_TEST(test_vertices_in_array_scaling);
+    RUN_TEST(test_vertices_out_array_scaling);
     return UNITY_END();
 }

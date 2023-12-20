@@ -26,16 +26,12 @@ unsigned int get_nb_node(char*** csv_matrix, int nb_row){
 // Function to create a new Arc
 Arc *createArc(int id, double dist, double danger, Noeud *pred, Noeud *succ)
 {
-    Arc *newArc = (Arc *)malloc(sizeof(Arc));
+    Arc *newArc = (Arc *)calloc(1,sizeof(Arc));
     newArc->id = id;
     newArc->dist = dist;
     newArc->danger = danger;
     newArc->succ = succ;
     newArc->predecesseur = pred;
-    if (succ->id == 2 || pred->id == 2)
-    {
-        printf("ici\n");
-    }
     if(succ->nb_arc_entrant==succ->max_arc_entrant){
         succ->entrant = realloc(succ->entrant,succ->max_arc_entrant*2);
     }
@@ -57,20 +53,20 @@ void createGraphFromCSV(const char *filename, Noeud **graph, Arc*** arcArray, in
     *nbArcs = nb_row;
     // Assuming the maximum node index found is the number of node and that all node index are contiguous
     *numNoeuds=get_nb_node(csv_matrix,nb_row);
-    *graph = (Noeud *)malloc(*numNoeuds * sizeof(Noeud));
+    *graph = (Noeud *)calloc(1,*numNoeuds * sizeof(Noeud));
 
     // The number of rows is the exact number of arcs in the csv file
-    *arcArray = (Arc **)malloc(nb_row * sizeof(Arc*));
+    *arcArray = (Arc **)calloc(1,nb_row * sizeof(Arc*));
 
     //Initialize each node
     for (int i = 0; i < *numNoeuds; i++)
     {
         (*graph)[i].nb_arc_entrant = 0;
         (*graph)[i].max_arc_entrant = DEFAULT_NEIGHBOURS;
-        (*graph)[i].entrant = malloc(sizeof(Arc *) * DEFAULT_NEIGHBOURS);
+        (*graph)[i].entrant = calloc(1,sizeof(Arc *) * DEFAULT_NEIGHBOURS);
         (*graph)[i].nb_arc_entrant = 0;
         (*graph)[i].max_arc_sortant = DEFAULT_NEIGHBOURS;
-        (*graph)[i].sortant = malloc(sizeof(Arc *) * DEFAULT_NEIGHBOURS);
+        (*graph)[i].sortant = calloc(1,sizeof(Arc *) * DEFAULT_NEIGHBOURS);
         (*graph)[i].id = i;
     }
 
@@ -88,4 +84,21 @@ void createGraphFromCSV(const char *filename, Noeud **graph, Arc*** arcArray, in
     }
     
     freeCSVMatrix(csv_matrix, nb_row, nb_col);
+}
+
+void freeGraph(Noeud *graph, int numNoeuds){
+    for (int i = 0; i < numNoeuds; i++)
+    {
+        free(graph[i].sortant);
+        free(graph[i].entrant);
+    }
+    free(graph);
+}
+
+void freeArc(Arc **arcArray,int nbArcs){
+    for (int i = 0; i < nbArcs; i++)
+    {
+        free(arcArray[i]);
+    }
+    free(arcArray);
 }

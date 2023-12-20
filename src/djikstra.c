@@ -9,21 +9,6 @@ void init_cost_diff_array(cost_diff_arc_t *diff_array, unsigned int nbArc)
     }
 }
 
-// void new_cost_diff(unsigned int id_trace, double djikstra_cost_diff,double dist, cost_diff_arc_t *arc_p)
-// {
-
-    // cost_diff_arc_t *temp_diff_array = arc_p;
-    // while (temp_diff_array->suivant != NULL)
-    // {
-    //     temp_diff_array = temp_diff_array->suivant;
-    // }
-    // temp_diff_array->id_trace = id_trace;
-    // temp_diff_array->dist = dist;
-    // temp_diff_array->djikstra_cost_diff = djikstra_cost_diff;
-    // temp_diff_array->suivant = malloc(sizeof(cost_diff_arc_t));
-    // temp_diff_array->suivant->suivant = NULL;
-// }
-
 void get_max_arc_to_optimize(cost_diff_arc_t *diff_array, unsigned int nbArc, int *arc_id_to_optimize, long double *budget_left)
 {
     double max_cost_saved = 0;
@@ -32,17 +17,7 @@ void get_max_arc_to_optimize(cost_diff_arc_t *diff_array, unsigned int nbArc, in
 
     for (unsigned int id_arc = 0; id_arc < nbArc; id_arc++)
     {
-        // local_max_cost_saved = 0;
-        // temp = &diff_array[id_arc];
 
-        // get the max cost saved for this arc
-        // while (temp->suivant != NULL)
-        // {
-        // if(diff_array[id_arc].dist <= (*budget_left)){
-        //     local_max_cost_saved += diff_array[id_arc].djikstra_cost_diff;
-        // }
-            // temp = temp->suivant;
-        // }
         if (diff_array[id_arc].dist <= (*budget_left) && diff_array[id_arc].djikstra_cost_diff > max_cost_saved)
         {
             max_cost_saved = diff_array[id_arc].djikstra_cost_diff;
@@ -52,33 +27,9 @@ void get_max_arc_to_optimize(cost_diff_arc_t *diff_array, unsigned int nbArc, in
     if (max_cost_saved > 0)
     {
         *arc_id_to_optimize = max_cost_arc_id;
-        printf("%d %f",max_cost_arc_id,max_cost_saved);
+        printf("%d %f", max_cost_arc_id, max_cost_saved);
     }
 }
-
-// void print_cost_diff(cost_diff_arc_t *diff_array, unsigned int nbArc)
-// {
-
-//     double max_cost_saved = 0;
-//     unsigned int max_cost_trace_id;
-//     cost_diff_arc_t *temp;
-
-//     for (unsigned int id_arc = 0; id_arc < nbArc; id_arc++)
-//     {
-//         max_cost_saved = 0;
-//         temp = &diff_array[id_arc];
-//         while (temp->suivant != NULL)
-//         {
-//             max_cost_saved = diff_array[id_arc].djikstra_cost_diff > max_cost_saved ? diff_array[id_arc].djikstra_cost_diff : max_cost_saved;
-//             max_cost_trace_id = temp->id_trace;
-//             temp = temp->suivant;
-//         }
-//         if (max_cost_saved > 0)
-//         {
-//             printf("arc %d max cost saved %f id_trace : %d\n", id_arc, max_cost_saved, max_cost_trace_id);
-//         }
-//     }
-// }
 
 double cost_function(trace_t *trace, Arc *arc)
 {
@@ -92,30 +43,24 @@ double updated_dist(Arc *arc, trace_t *trace)
 {
     return trace->foward_djikstra[arc->predecesseur->id] + cost_function(trace, arc) + trace->backward_djikstra[arc->succ->id];
 }
-// Function to find the vertex with the minimum distance value
-int minDistance(double dist[], bool markedVertex[], int V)
-{
-    double min = DBL_MAX;
-    int min_index = -1;
 
-    for (int v = 0; v < V; v++)
-    {
-        if ((markedVertex[v] == false) && dist[v] < min)
-        {
-            min = dist[v];
-            min_index = v;
-        }
-    }
-    return min_index;
-}
-
-double djikstra_forward(struct Noeud *graph, int V, double **dist_array, trace_t *trace)
+double djikstra_forward(struct Noeud *graph, int V, double **dist_array,int** parent_array, trace_t *trace)
 {
-    (*dist_array) = (double *)malloc(V * sizeof(double));
-    bool *markedVertex = (bool *)malloc(V * sizeof(bool));
-    int *parent = (int *)malloc(V * sizeof(int));
+    (*dist_array) = (double *)calloc(1,V * sizeof(double));
+    int * parent;
+    bool markedVertex[V];
+    bool toVisitVertex[V];
     int dest_vertex_id;
     unsigned int origin, destination;
+    list_node_t *verticesToVisit = NULL;
+    list_node_t *temp, *old;
+
+    if(parent_array!=NULL){
+        (*parent_array) = (int *)calloc(1,V * sizeof(int));
+        parent = (*parent_array);
+    }else{
+        parent = (int *)calloc(1,V * sizeof(int));
+    }
 
     origin = trace->origin;
     destination = trace->destination;
@@ -125,52 +70,103 @@ double djikstra_forward(struct Noeud *graph, int V, double **dist_array, trace_t
     {
         (*dist_array)[i] = DBL_MAX;
         markedVertex[i] = false;
+        toVisitVertex[i] = false;
     }
 
     // Distance from source to itself is always 0
     (*dist_array)[origin] = 0;
 
-    // Parent of source is itself
     parent[origin] = -1;
 
+    verticesToVisit = calloc(1,sizeof(list_node_t));
+    verticesToVisit->vertex_id = origin;
+    verticesToVisit->next = NULL;
+    for (unsigned int i = 0; i < graph[origin].nb_arc_sortant; i++)
+    {
+        dest_vertex_id = graph[origin].sortant[i]->succ->id;
+
+        list_node_t *newNode = calloc(1,sizeof(list_node_t));
+        toVisitVertex[dest_vertex_id] = true;
+        newNode->vertex_id = dest_vertex_id;
+        newNode->next = verticesToVisit;
+        verticesToVisit = newNode;
+    }
+
     // Find the shortest path for all vertices
-    for (int count = 0; count < V - 1; count++)
+    while (verticesToVisit != NULL)
     {
         // Pick the minimum distance vertex from the set of vertices not yet processed
-        int u = minDistance((*dist_array), markedVertex, V);
+        int u = minDistance((*dist_array), verticesToVisit);
         if (u == -1)
         {
             break;
         }
         // Mark the picked vertex as processed
         markedVertex[u] = true;
+
+        temp = verticesToVisit;
+        old = NULL;
+        while (temp != NULL && temp->vertex_id != u)
+        {
+            old = temp;
+            temp = temp->next;
+        }
+        if (old != NULL)
+        {
+            old->next = temp->next;
+        }
+        else
+        {
+            verticesToVisit = temp->next;
+        }
+        free(temp);
+
         // Update dist value of the adjacent vertices
         for (unsigned int arc_i = 0; arc_i < graph[u].nb_arc_sortant; arc_i++)
         {
             dest_vertex_id = graph[u].sortant[arc_i]->succ->id;
-            if(!vertexIsInVisiblite(trace,dest_vertex_id)){
+            if (!vertexIsInVisiblite(trace, dest_vertex_id))
+            {
                 continue;
             }
-            // if (!markedVertex[dest_vertex_id] && graph[u].sortant[arc_i] != NULL && ((*dist_array)[u] + graph[u].sortant[arc_i]->dist < (*dist_array)[dest_vertex_id]))
             if (!markedVertex[dest_vertex_id] && graph[u].sortant[arc_i] != NULL && ((*dist_array)[u] + cost_function(trace, graph[u].sortant[arc_i]) < (*dist_array)[dest_vertex_id]))
             {
                 (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(trace, graph[u].sortant[arc_i]);
                 parent[dest_vertex_id] = u;
+                if (!toVisitVertex[dest_vertex_id])
+                {
+                    toVisitVertex[dest_vertex_id] = true;
+                    list_node_t *vertexToVisit = calloc(1,sizeof(list_node_t));
+                    vertexToVisit->next = verticesToVisit;
+                    vertexToVisit->vertex_id = dest_vertex_id;
+                    verticesToVisit = vertexToVisit;
+                }
             }
         }
     }
-    free(markedVertex);
-    free(parent);
+    if(parent_array==NULL){
+        free(parent);
+    }
     return (*dist_array)[destination];
 }
 
-double djikstra_backward(struct Noeud *graph, int V, double **dist_array, trace_t *trace)
+double djikstra_backward(struct Noeud *graph, int V, double **dist_array,int **parent_array, trace_t *trace)
 {
-    (*dist_array) = (double *)malloc(V * sizeof(double));
-    bool *markedVertex = (bool *)malloc(V * sizeof(bool));
-    int *parent = (int *)malloc(V * sizeof(int));
+    (*dist_array) = (double *)calloc(1,V * sizeof(double));
+    bool markedVertex[V];
+    bool toVisitVertex[V];
     int dest_vertex_id;
     unsigned int origin, destination;
+    list_node_t *verticesToVisit = NULL;
+    list_node_t *temp, *old;
+    int *parent;
+
+    if(parent_array!=NULL){
+        (*parent_array) = (int *)calloc(1,V * sizeof(int));
+        parent = (*parent_array);
+    }else{
+        parent = (int *)calloc(1,V * sizeof(int));
+    }
 
     origin = trace->destination;
     destination = trace->origin;
@@ -180,69 +176,128 @@ double djikstra_backward(struct Noeud *graph, int V, double **dist_array, trace_
     {
         (*dist_array)[i] = DBL_MAX;
         markedVertex[i] = false;
+        toVisitVertex[i] = false;
     }
 
     // Distance from source to itself is always 0
     (*dist_array)[origin] = 0;
 
-    // Parent of source is itself
     parent[origin] = -1;
 
+
+    verticesToVisit = calloc(1,sizeof(list_node_t));
+    verticesToVisit->vertex_id = origin;
+    verticesToVisit->next = NULL;
+    for (unsigned int i = 0; i < graph[origin].nb_arc_entrant; i++)
+    {
+        dest_vertex_id = graph[origin].entrant[i]->predecesseur->id;
+
+        list_node_t *newNode = calloc(1,sizeof(list_node_t));
+        toVisitVertex[dest_vertex_id] = true;
+        newNode->vertex_id = dest_vertex_id;
+        newNode->next = verticesToVisit;
+        verticesToVisit = newNode;
+    }
+
     // Find the shortest path for all vertices
-    for (int count = 0; count < V - 1; count++)
+    while (verticesToVisit != NULL)
     {
         // Pick the minimum distance vertex from the set of vertices not yet processed
-        int u = minDistance((*dist_array), markedVertex, V);
+        int u = minDistance((*dist_array), verticesToVisit);
         if (u == -1)
         {
             break;
         }
         // Mark the picked vertex as processed
         markedVertex[u] = true;
+
+        temp = verticesToVisit;
+        old = NULL;
+        while (temp != NULL && temp->vertex_id != u)
+        {
+            old = temp;
+            temp = temp->next;
+        }
+        if (old != NULL)
+        {
+            old->next = temp->next;
+        }
+        else
+        {
+            verticesToVisit = temp->next;
+        }
+        free(temp);
+
         // Update dist value of the adjacent vertices
         for (unsigned int arc_i = 0; arc_i < graph[u].nb_arc_entrant; arc_i++)
         {
             dest_vertex_id = graph[u].entrant[arc_i]->predecesseur->id;
-            if(!vertexIsInVisiblite(trace,dest_vertex_id)){
+            if (!vertexIsInVisiblite(trace, dest_vertex_id))
+            {
                 continue;
             }
             if (!markedVertex[dest_vertex_id] && graph[u].entrant[arc_i] != NULL && ((*dist_array)[u] + cost_function(trace, graph[u].entrant[arc_i]) < (*dist_array)[dest_vertex_id]))
             {
                 (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(trace, graph[u].entrant[arc_i]);
                 parent[dest_vertex_id] = u;
+                if (!toVisitVertex[dest_vertex_id])
+                {
+                    toVisitVertex[dest_vertex_id] = true;
+                    list_node_t *vertexToVisit = calloc(1,sizeof(list_node_t));
+                    vertexToVisit->next = verticesToVisit;
+                    vertexToVisit->vertex_id = dest_vertex_id;
+                    verticesToVisit = vertexToVisit;
+                }
             }
         }
     }
-    free(markedVertex);
-    free(parent);
+    if(parent_array==NULL){
+        free(parent);
+    }
+
     return (*dist_array)[destination];
 }
 
+int minDistance(double dist[], list_node_t *vertexToVisit)
+{
+    double min = DBL_MAX;
+    int min_index = -1;
+
+    list_node_t *temp = vertexToVisit;
+
+    while (temp != NULL)
+    {
+        if (dist[temp->vertex_id] < min)
+        {
+            min = dist[temp->vertex_id];
+            min_index = temp->vertex_id;
+        }
+        temp = temp->next;
+    }
+    return min_index;
+}
 // TODO : REMOVE PARENTS
 //  Dijkstra's algorithm to find the shortest path between two vertices
-double djikstra_test(struct Noeud *graph, int V, double **dist_array, int **parent, trace_t *trace, bool forward)
+double djikstra_test(struct Noeud *graph, int V, double **dist_array, int **parent, trace_t *trace)
 {
-    (*dist_array) = (double *)malloc(V * sizeof(double));
-    bool *markedVertex = (bool *)malloc(V * sizeof(bool));
-    (*parent) = (int *)malloc(V * sizeof(int));
+    (*dist_array) = (double *)calloc(1,V * sizeof(double));
+    bool markedVertex[V];
+    bool toVisitVertex[V];
+    (*parent) = (int *)calloc(1,V * sizeof(int));
     int dest_vertex_id;
     unsigned int origin, destination;
-    if (forward)
-    {
-        origin = trace->origin;
-        destination = trace->destination;
-    }
-    else
-    {
-        origin = trace->destination;
-        destination = trace->origin;
-    }
+    list_node_t *verticesToVisit = NULL;
+    list_node_t *temp, *old;
+
+    origin = trace->origin;
+    destination = trace->destination;
 
     // Initialize distances, set all vertices as not yet included in the shortest path tree
     for (int i = 0; i < V; i++)
     {
         (*dist_array)[i] = DBL_MAX;
         markedVertex[i] = false;
+        toVisitVertex[i] = false;
     }
 
     // Distance from source to itself is always 0
@@ -251,48 +306,73 @@ double djikstra_test(struct Noeud *graph, int V, double **dist_array, int **pare
     // Parent of source is itself
     (*parent)[origin] = -1;
 
+    verticesToVisit = calloc(1,sizeof(list_node_t));
+    verticesToVisit->vertex_id = origin;
+    verticesToVisit->next = NULL;
+    for (unsigned int i = 0; i < graph[origin].nb_arc_sortant; i++)
+    {
+        dest_vertex_id = graph[origin].sortant[i]->succ->id;
+
+        list_node_t *newNode = calloc(1,sizeof(list_node_t));
+        toVisitVertex[dest_vertex_id] = true;
+        newNode->vertex_id = dest_vertex_id;
+        newNode->next = verticesToVisit;
+        verticesToVisit = newNode;
+    }
+
     // Find the shortest path for all vertices
-    for (int count = 0; count < V - 1; count++)
+    while (verticesToVisit != NULL)
     {
         // Pick the minimum distance vertex from the set of vertices not yet processed
-        int u = minDistance((*dist_array), markedVertex, V);
+        int u = minDistance((*dist_array), verticesToVisit);
         if (u == -1)
         {
             break;
         }
         // Mark the picked vertex as processed
         markedVertex[u] = true;
+
+        temp = verticesToVisit;
+        old = NULL;
+        while (temp != NULL && temp->vertex_id != u)
+        {
+            old = temp;
+            temp = temp->next;
+        }
+        if (old != NULL)
+        {
+            old->next = temp->next;
+        }
+        else
+        {
+            verticesToVisit = temp->next;
+        }
+        free(temp);
+
         // Update dist value of the adjacent vertices
         for (unsigned int arc_i = 0; arc_i < graph[u].nb_arc_sortant; arc_i++)
         {
             dest_vertex_id = graph[u].sortant[arc_i]->succ->id;
-            if(!vertexIsInVisiblite(trace,dest_vertex_id)){
+            if (!vertexIsInVisiblite(trace, dest_vertex_id))
+            {
                 continue;
             }
-            // if (!markedVertex[dest_vertex_id] && graph[u].sortant[arc_i] != NULL && ((*dist_array)[u] + graph[u].sortant[arc_i]->dist < (*dist_array)[dest_vertex_id]))
             if (!markedVertex[dest_vertex_id] && graph[u].sortant[arc_i] != NULL && ((*dist_array)[u] + cost_function(trace, graph[u].sortant[arc_i]) < (*dist_array)[dest_vertex_id]))
             {
-                // (*dist_array)[dest_vertex_id] = (*dist_array)[u] + graph[u].sortant[arc_i]->dist;
                 (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(trace, graph[u].sortant[arc_i]);
                 (*parent)[dest_vertex_id] = u;
+
+                if (!toVisitVertex[dest_vertex_id])
+                {
+                    toVisitVertex[dest_vertex_id] = true;
+                    list_node_t *vertexToVisit = calloc(1,sizeof(list_node_t));
+                    vertexToVisit->next = verticesToVisit;
+                    vertexToVisit->vertex_id = dest_vertex_id;
+                    verticesToVisit = vertexToVisit;
+                }
             }
         }
     }
 
-    // Print the shortest path from source to destination
-    // printf("Shortest Path from %d to %d:\n", trace->origin, trace->destination);
-    // int current = trace->destination;
-    // while (current != -1)
-    // {
-    //     printf("%d <- ", current);
-    //     current = parent[current];
-    // }
-    // printf("\n");
-
-    // // // Print the total distance of the shortest path
-    // printf("Total Distance: %f\n", (*dist_array)[trace->destination]);
-
-    free(markedVertex);
-    // free(parent);
     return (*dist_array)[destination];
 }

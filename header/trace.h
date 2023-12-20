@@ -45,5 +45,6 @@ trace_t *get_traces(char *csv_path, char *csv_delimiter, int *nb_traces);
 bool arcIsInVisiblite(trace_t *traces, Arc *arc);
 bool tronconIsInTrace(trace_t *traces, Arc *arc);
 bool vertexIsInVisiblite(trace_t *traces, unsigned int vertex_id);
+void free_traces(trace_t* traces,int nb_traces);
 
 #endif

@@ -39,5 +39,7 @@ typedef struct Arc {
 unsigned int get_nb_node(char*** csv_matrix, int nb_row);
 Arc *createArc(int id, double dist, double danger, Noeud *pred, Noeud *succ);
 void createGraphFromCSV(const char *filename, Noeud **graph,Arc*** arcArray, int *numNoeuds, int * nbArcs);
+void freeGraph(Noeud *graph,int numNoeuds);
+void freeArc(Arc **arcArray,int nbArcs);
 
 #endif

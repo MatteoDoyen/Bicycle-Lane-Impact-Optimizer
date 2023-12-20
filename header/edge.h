@@ -7,10 +7,10 @@ struct edge_t;
 // vertex_t struct definition
 typedef struct vertex_t {
     unsigned int id;
-    struct edge_t **sortant; //array of outgoing edge
+    struct edge_t **out_edges; //array of outgoing edge
     unsigned int nb_edges_out; //current number of outgoing edge
     unsigned int max_edges_out; //max number of outgoing edge
-    struct edge_t **entrant; //array of incoming edge
+    struct edge_t **in_edges; //array of incoming edge
     unsigned int nb_edges_in; //current numbr of incoming edge
     unsigned int max_edges_in; //max number of incoming edge
 } vertex_t;
@@ -33,7 +33,7 @@ typedef struct edge_t {
 #define G_DANGER_INDEX 4
 #define G_AMENAGEMENT_INDEX 5
 
-#define DEFAULT_NEIGHBOURS 20 // by experiences it seems that there is never a node with more than 20 neighbours
+#define DEFAULT_NEIGHBOURS 20 // by experiences it seems that there is rarely ever a node with more than 20 neighbours
 
 
 unsigned int get_nb_node(char*** csv_matrix, int nb_row);

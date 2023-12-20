@@ -33,14 +33,18 @@ edge_t *create_edge(int id, double dist, double danger, vertex_t *pred, vertex_t
     newedge_t->succ = succ;
     newedge_t->pred = pred;
     if(succ->nb_edges_in==succ->max_edges_in){
-        succ->entrant = realloc(succ->entrant,succ->max_edges_in*2);
+        fprintf(stderr,"edges in max\n");
+        succ->in_edges = realloc(succ->in_edges,(succ->max_edges_in*2)*sizeof(edge_t *));
+        succ->max_edges_in = succ->max_edges_in*2;
     }
-    succ->entrant[succ->nb_edges_in++] = newedge_t;
+    succ->in_edges[succ->nb_edges_in++] = newedge_t;
 
-    if(succ->nb_edges_out==succ->max_edges_out){
-        succ->sortant = realloc(succ->sortant,succ->max_edges_out*2);
+    if(pred->nb_edges_out==pred->max_edges_out){
+        pred->out_edges = realloc(pred->out_edges,(pred->max_edges_out*2)*sizeof(edge_t *));
+        pred->max_edges_out = pred->max_edges_out*2;
     }
-    pred->sortant[pred->nb_edges_out++] = newedge_t;
+    pred->out_edges[pred->nb_edges_out++] = newedge_t;
+
     return newedge_t;
 }
 
@@ -63,10 +67,10 @@ void get_graph(const char *filename,char * separator, vertex_t **graph, edge_t**
     {
         (*graph)[i].nb_edges_in = 0;
         (*graph)[i].max_edges_in = DEFAULT_NEIGHBOURS;
-        (*graph)[i].entrant = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
-        (*graph)[i].nb_edges_in = 0;
+        (*graph)[i].in_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        (*graph)[i].nb_edges_out = 0;
         (*graph)[i].max_edges_out = DEFAULT_NEIGHBOURS;
-        (*graph)[i].sortant = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        (*graph)[i].out_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
         (*graph)[i].id = i;
     }
 
@@ -89,8 +93,8 @@ void get_graph(const char *filename,char * separator, vertex_t **graph, edge_t**
 void free_graph(vertex_t *graph, int numvertex_ts){
     for (int i = 0; i < numvertex_ts; i++)
     {
-        free(graph[i].sortant);
-        free(graph[i].entrant);
+        free(graph[i].out_edges);
+        free(graph[i].in_edges);
     }
     free(graph);
 }

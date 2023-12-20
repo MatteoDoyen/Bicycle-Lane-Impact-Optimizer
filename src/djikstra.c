@@ -83,7 +83,7 @@ double djikstra_forward(struct vertex_t *graph, int V, double **dist_array,int**
     verticesToVisit->next = NULL;
     for (unsigned int i = 0; i < graph[origin].nb_edges_out; i++)
     {
-        dest_vertex_id = graph[origin].sortant[i]->succ->id;
+        dest_vertex_id = graph[origin].out_edges[i]->succ->id;
 
         list_node_t *newNode = calloc(1,sizeof(list_node_t));
         toVisitVertex[dest_vertex_id] = true;
@@ -124,14 +124,14 @@ double djikstra_forward(struct vertex_t *graph, int V, double **dist_array,int**
         // Update dist value of the adjacent vertices
         for (unsigned int edge_i = 0; edge_i < graph[u].nb_edges_out; edge_i++)
         {
-            dest_vertex_id = graph[u].sortant[edge_i]->succ->id;
+            dest_vertex_id = graph[u].out_edges[edge_i]->succ->id;
             if (!vertex_is_in_visibilite(path, dest_vertex_id))
             {
                 continue;
             }
-            if (!markedVertex[dest_vertex_id] && graph[u].sortant[edge_i] != NULL && ((*dist_array)[u] + cost_function(path, graph[u].sortant[edge_i]) < (*dist_array)[dest_vertex_id]))
+            if (!markedVertex[dest_vertex_id] && graph[u].out_edges[edge_i] != NULL && ((*dist_array)[u] + cost_function(path, graph[u].out_edges[edge_i]) < (*dist_array)[dest_vertex_id]))
             {
-                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(path, graph[u].sortant[edge_i]);
+                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(path, graph[u].out_edges[edge_i]);
                 parent[dest_vertex_id] = u;
                 if (!toVisitVertex[dest_vertex_id])
                 {
@@ -190,7 +190,7 @@ double djikstra_backward(struct vertex_t *graph, int V, double **dist_array,int 
     verticesToVisit->next = NULL;
     for (unsigned int i = 0; i < graph[origin].nb_edges_in; i++)
     {
-        dest_vertex_id = graph[origin].entrant[i]->pred->id;
+        dest_vertex_id = graph[origin].in_edges[i]->pred->id;
 
         list_node_t *newNode = calloc(1,sizeof(list_node_t));
         toVisitVertex[dest_vertex_id] = true;
@@ -231,14 +231,14 @@ double djikstra_backward(struct vertex_t *graph, int V, double **dist_array,int 
         // Update dist value of the adjacent vertices
         for (unsigned int edge_i = 0; edge_i < graph[u].nb_edges_in; edge_i++)
         {
-            dest_vertex_id = graph[u].entrant[edge_i]->pred->id;
+            dest_vertex_id = graph[u].in_edges[edge_i]->pred->id;
             if (!vertex_is_in_visibilite(path, dest_vertex_id))
             {
                 continue;
             }
-            if (!markedVertex[dest_vertex_id] && graph[u].entrant[edge_i] != NULL && ((*dist_array)[u] + cost_function(path, graph[u].entrant[edge_i]) < (*dist_array)[dest_vertex_id]))
+            if (!markedVertex[dest_vertex_id] && graph[u].in_edges[edge_i] != NULL && ((*dist_array)[u] + cost_function(path, graph[u].in_edges[edge_i]) < (*dist_array)[dest_vertex_id]))
             {
-                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(path, graph[u].entrant[edge_i]);
+                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(path, graph[u].in_edges[edge_i]);
                 parent[dest_vertex_id] = u;
                 if (!toVisitVertex[dest_vertex_id])
                 {
@@ -311,7 +311,7 @@ double djikstra_test(struct vertex_t *graph, int V, double **dist_array, int **p
     verticesToVisit->next = NULL;
     for (unsigned int i = 0; i < graph[origin].nb_edges_out; i++)
     {
-        dest_vertex_id = graph[origin].sortant[i]->succ->id;
+        dest_vertex_id = graph[origin].out_edges[i]->succ->id;
 
         list_node_t *newNode = calloc(1,sizeof(list_node_t));
         toVisitVertex[dest_vertex_id] = true;
@@ -352,14 +352,14 @@ double djikstra_test(struct vertex_t *graph, int V, double **dist_array, int **p
         // Update dist value of the adjacent vertices
         for (unsigned int edge_i = 0; edge_i < graph[u].nb_edges_out; edge_i++)
         {
-            dest_vertex_id = graph[u].sortant[edge_i]->succ->id;
+            dest_vertex_id = graph[u].out_edges[edge_i]->succ->id;
             if (!vertex_is_in_visibilite(path, dest_vertex_id))
             {
                 continue;
             }
-            if (!markedVertex[dest_vertex_id] && graph[u].sortant[edge_i] != NULL && ((*dist_array)[u] + cost_function(path, graph[u].sortant[edge_i]) < (*dist_array)[dest_vertex_id]))
+            if (!markedVertex[dest_vertex_id] && graph[u].out_edges[edge_i] != NULL && ((*dist_array)[u] + cost_function(path, graph[u].out_edges[edge_i]) < (*dist_array)[dest_vertex_id]))
             {
-                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(path, graph[u].sortant[edge_i]);
+                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(path, graph[u].out_edges[edge_i]);
                 (*parent)[dest_vertex_id] = u;
 
                 if (!toVisitVertex[dest_vertex_id])

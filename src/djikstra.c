@@ -31,20 +31,20 @@ void get_max_edge_to_optimize(cost_diff_edge_t *diff_array, unsigned int nbedge_
     }
 }
 
-double cost_function(trace_t *trace, edge_t *edge)
+double cost_function(path_t *path, edge_t *edge)
 {
-    return (trace->profil * edge->dist) + ((1 - trace->profil) * edge->danger);
+    return (path->profil * edge->dist) + ((1 - path->profil) * edge->danger);
     // return edge->dist;
 }
 
 /// update the distance in the cached djikstra
 /// here the vertex already has an updated distance
-double updated_dist(edge_t *edge, trace_t *trace)
+double updated_dist(edge_t *edge, path_t *path)
 {
-    return trace->foward_djikstra[edge->pred->id] + cost_function(trace, edge) + trace->backward_djikstra[edge->succ->id];
+    return path->foward_djikstra[edge->pred->id] + cost_function(path, edge) + path->backward_djikstra[edge->succ->id];
 }
 
-double djikstra_forward(struct vertex_t *graph, int V, double **dist_array,int** parent_array, trace_t *trace)
+double djikstra_forward(struct vertex_t *graph, int V, double **dist_array,int** parent_array, path_t *path)
 {
     (*dist_array) = (double *)calloc(1,V * sizeof(double));
     int * parent;
@@ -62,8 +62,8 @@ double djikstra_forward(struct vertex_t *graph, int V, double **dist_array,int**
         parent = (int *)calloc(1,V * sizeof(int));
     }
 
-    origin = trace->origin;
-    destination = trace->destination;
+    origin = path->origin;
+    destination = path->destination;
 
     // Initialize distances, set all vertices as not yet included in the shortest path tree
     for (int i = 0; i < V; i++)
@@ -96,7 +96,7 @@ double djikstra_forward(struct vertex_t *graph, int V, double **dist_array,int**
     while (verticesToVisit != NULL)
     {
         // Pick the minimum distance vertex from the set of vertices not yet processed
-        int u = minDistance((*dist_array), verticesToVisit);
+        int u = min_distance((*dist_array), verticesToVisit);
         if (u == -1)
         {
             break;
@@ -125,13 +125,13 @@ double djikstra_forward(struct vertex_t *graph, int V, double **dist_array,int**
         for (unsigned int edge_i = 0; edge_i < graph[u].nb_edges_out; edge_i++)
         {
             dest_vertex_id = graph[u].sortant[edge_i]->succ->id;
-            if (!vertex_is_in_visibilite(trace, dest_vertex_id))
+            if (!vertex_is_in_visibilite(path, dest_vertex_id))
             {
                 continue;
             }
-            if (!markedVertex[dest_vertex_id] && graph[u].sortant[edge_i] != NULL && ((*dist_array)[u] + cost_function(trace, graph[u].sortant[edge_i]) < (*dist_array)[dest_vertex_id]))
+            if (!markedVertex[dest_vertex_id] && graph[u].sortant[edge_i] != NULL && ((*dist_array)[u] + cost_function(path, graph[u].sortant[edge_i]) < (*dist_array)[dest_vertex_id]))
             {
-                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(trace, graph[u].sortant[edge_i]);
+                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(path, graph[u].sortant[edge_i]);
                 parent[dest_vertex_id] = u;
                 if (!toVisitVertex[dest_vertex_id])
                 {
@@ -150,7 +150,7 @@ double djikstra_forward(struct vertex_t *graph, int V, double **dist_array,int**
     return (*dist_array)[destination];
 }
 
-double djikstra_backward(struct vertex_t *graph, int V, double **dist_array,int **parent_array, trace_t *trace)
+double djikstra_backward(struct vertex_t *graph, int V, double **dist_array,int **parent_array, path_t *path)
 {
     (*dist_array) = (double *)calloc(1,V * sizeof(double));
     bool markedVertex[V];
@@ -168,8 +168,8 @@ double djikstra_backward(struct vertex_t *graph, int V, double **dist_array,int 
         parent = (int *)calloc(1,V * sizeof(int));
     }
 
-    origin = trace->destination;
-    destination = trace->origin;
+    origin = path->destination;
+    destination = path->origin;
 
     // Initialize distances, set all vertices as not yet included in the shortest path tree
     for (int i = 0; i < V; i++)
@@ -203,7 +203,7 @@ double djikstra_backward(struct vertex_t *graph, int V, double **dist_array,int 
     while (verticesToVisit != NULL)
     {
         // Pick the minimum distance vertex from the set of vertices not yet processed
-        int u = minDistance((*dist_array), verticesToVisit);
+        int u = min_distance((*dist_array), verticesToVisit);
         if (u == -1)
         {
             break;
@@ -232,13 +232,13 @@ double djikstra_backward(struct vertex_t *graph, int V, double **dist_array,int 
         for (unsigned int edge_i = 0; edge_i < graph[u].nb_edges_in; edge_i++)
         {
             dest_vertex_id = graph[u].entrant[edge_i]->pred->id;
-            if (!vertex_is_in_visibilite(trace, dest_vertex_id))
+            if (!vertex_is_in_visibilite(path, dest_vertex_id))
             {
                 continue;
             }
-            if (!markedVertex[dest_vertex_id] && graph[u].entrant[edge_i] != NULL && ((*dist_array)[u] + cost_function(trace, graph[u].entrant[edge_i]) < (*dist_array)[dest_vertex_id]))
+            if (!markedVertex[dest_vertex_id] && graph[u].entrant[edge_i] != NULL && ((*dist_array)[u] + cost_function(path, graph[u].entrant[edge_i]) < (*dist_array)[dest_vertex_id]))
             {
-                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(trace, graph[u].entrant[edge_i]);
+                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(path, graph[u].entrant[edge_i]);
                 parent[dest_vertex_id] = u;
                 if (!toVisitVertex[dest_vertex_id])
                 {
@@ -258,7 +258,7 @@ double djikstra_backward(struct vertex_t *graph, int V, double **dist_array,int 
     return (*dist_array)[destination];
 }
 
-int minDistance(double dist[], list_node_t *vertexToVisit)
+int min_distance(double dist[], list_node_t *vertexToVisit)
 {
     double min = DBL_MAX;
     int min_index = -1;
@@ -278,7 +278,7 @@ int minDistance(double dist[], list_node_t *vertexToVisit)
 }
 // TODO : REMOVE PARENTS
 //  Dijkstra's algorithm to find the shortest path between two vertices
-double djikstra_test(struct vertex_t *graph, int V, double **dist_array, int **parent, trace_t *trace)
+double djikstra_test(struct vertex_t *graph, int V, double **dist_array, int **parent, path_t *path)
 {
     (*dist_array) = (double *)calloc(1,V * sizeof(double));
     bool markedVertex[V];
@@ -289,8 +289,8 @@ double djikstra_test(struct vertex_t *graph, int V, double **dist_array, int **p
     list_node_t *verticesToVisit = NULL;
     list_node_t *temp, *old;
 
-    origin = trace->origin;
-    destination = trace->destination;
+    origin = path->origin;
+    destination = path->destination;
 
     // Initialize distances, set all vertices as not yet included in the shortest path tree
     for (int i = 0; i < V; i++)
@@ -324,7 +324,7 @@ double djikstra_test(struct vertex_t *graph, int V, double **dist_array, int **p
     while (verticesToVisit != NULL)
     {
         // Pick the minimum distance vertex from the set of vertices not yet processed
-        int u = minDistance((*dist_array), verticesToVisit);
+        int u = min_distance((*dist_array), verticesToVisit);
         if (u == -1)
         {
             break;
@@ -353,13 +353,13 @@ double djikstra_test(struct vertex_t *graph, int V, double **dist_array, int **p
         for (unsigned int edge_i = 0; edge_i < graph[u].nb_edges_out; edge_i++)
         {
             dest_vertex_id = graph[u].sortant[edge_i]->succ->id;
-            if (!vertex_is_in_visibilite(trace, dest_vertex_id))
+            if (!vertex_is_in_visibilite(path, dest_vertex_id))
             {
                 continue;
             }
-            if (!markedVertex[dest_vertex_id] && graph[u].sortant[edge_i] != NULL && ((*dist_array)[u] + cost_function(trace, graph[u].sortant[edge_i]) < (*dist_array)[dest_vertex_id]))
+            if (!markedVertex[dest_vertex_id] && graph[u].sortant[edge_i] != NULL && ((*dist_array)[u] + cost_function(path, graph[u].sortant[edge_i]) < (*dist_array)[dest_vertex_id]))
             {
-                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(trace, graph[u].sortant[edge_i]);
+                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(path, graph[u].sortant[edge_i]);
                 (*parent)[dest_vertex_id] = u;
 
                 if (!toVisitVertex[dest_vertex_id])

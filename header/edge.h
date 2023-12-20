@@ -1,5 +1,5 @@
-#ifndef ARC_H
-#define ARC_H
+#ifndef EDGE_H
+#define EDGE_H
 #include <stdbool.h>
 // Forward declaration of edge_t struct
 struct edge_t;
@@ -42,4 +42,4 @@ void get_graph(const char *filename,char * separator, vertex_t **graph, edge_t**
 void free_graph(vertex_t *graph,int num_vertices);
 void free_edge(edge_t **edge_array,int nb_edges);
 
-#endif
+#endif //EDGE_H

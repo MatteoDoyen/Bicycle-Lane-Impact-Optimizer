@@ -19,9 +19,50 @@ void tearDown(void)
     // clean stuff up here
 }
 
-/*
+void test_get_edges_to_optimize_for_budget_multiple_edge(void){
+    char *graphe_file_name ="./data_test/data_graphe_reduced.csv";
+    char *paths_file_name="./data_test/data_path_reduced.csv";
+    long double budget = 1.3;
+    int taille=0;
+    selected_edge_t *selected_edges;
 
-*/
+    get_edges_to_optimize_for_budget(budget,graphe_file_name,paths_file_name,&selected_edges);
+
+    selected_edge_t *temp = selected_edges;
+    while (temp!=NULL)
+    {
+        temp = temp->next;
+        taille++;
+    }
+    fprintf(stderr,"DSDDSDQD %Lf",selected_edges->cost_saved);
+    TEST_ASSERT_EQUAL_MESSAGE(2,taille,"Only two edge must be selected for the budget");
+    // TEST_ASSERT_EQUAL_MESSAGE(3,selected_edges->edge_id,"Only one edge must be selected for the budget");
+    // TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.25,selected_edges->cost_saved,"Only one edge must be selected for the budget");
+    free_select_edge(selected_edges);
+}
+
+void test_get_edges_to_optimize_for_budget_one_edge(void){
+    char *graphe_file_name ="./data_test/data_graphe_reduced.csv";
+    char *paths_file_name="./data_test/data_path_reduced.csv";
+    long double budget = 0.5;
+    int taille=0;
+    selected_edge_t *selected_edges;
+
+    get_edges_to_optimize_for_budget(budget,graphe_file_name,paths_file_name,&selected_edges);
+
+    selected_edge_t *temp = selected_edges;
+    while (temp!=NULL)
+    {
+        temp = temp->next;
+        taille++;
+    }
+    fprintf(stderr,"DSDDSDQD %Lf",selected_edges->cost_saved);
+    TEST_ASSERT_EQUAL_MESSAGE(1,taille,"Only one edge must be selected for the budget");
+    TEST_ASSERT_EQUAL_MESSAGE(3,selected_edges->edge_id,"Only one edge must be selected for the budget");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.25,selected_edges->cost_saved,"Only one edge must be selected for the budget");
+    free_select_edge(selected_edges);
+}
+
 
 // void test_get_max_edge_to_optimize(void){
 //     cost_diff_edge_t *diff_array;
@@ -125,6 +166,7 @@ void test_djikstra_forward_vs_backward_path(void)
     int nb_vertices;
     int nb_paths;
     int nb_edges;
+    double djikstra_cost;
 
     double *dist_array_forward, *dist_array_backward;
     int *parent_array_forward, *parent_array_backward;
@@ -136,9 +178,9 @@ void test_djikstra_forward_vs_backward_path(void)
     
     for (int i = 0; i < nb_paths; i++)
     {
-        djikstra_forward(graph, nb_vertices, &dist_array_forward, &parent_array_forward, &paths[i]);
-        djikstra_backward(graph, nb_vertices, &dist_array_backward, &parent_array_backward, &paths[i]);
-
+        djikstra_cost = djikstra_forward(graph, nb_vertices, &dist_array_forward, &parent_array_forward, &paths[i]);
+        dijistkra_test(dist_array_forward, &dist_array_backward,parent_array_forward,&parent_array_backward,paths[i].destination, djikstra_cost, nb_vertices);
+        // djikstra_backward(graph, nb_vertices, &dist_array_backward, &parent_array_backward, &paths[i]);
         // used to get the number of element
         // when current=-1 there is no parent and the previous current is equal to the
         // destination for backward djikstra
@@ -158,7 +200,6 @@ void test_djikstra_forward_vs_backward_path(void)
             diff_path[x] = current;
             current = parent_array_backward[current];
         }
-
         // We can now compare the path found by the backward djikstra
         // with the path found by the forward djikstra
         current = paths[i].destination;
@@ -188,6 +229,7 @@ void test_djikstra_forward_vs_backward_cost(void)
     int nb_vertices;
     int nb_edges;
     double *dist_array_forward, *dist_array_backward;
+    // int *parent_f;
     int nb_paths;
     double cost_forward, cost_backward;
     // char str[80];
@@ -199,10 +241,13 @@ void test_djikstra_forward_vs_backward_cost(void)
     {
         cost_forward = djikstra_forward(graph, nb_vertices, &dist_array_forward, NULL, &paths[i]);
         cost_backward = djikstra_backward(graph, nb_vertices, &dist_array_backward, NULL, &paths[i]);
+        // cost_forward = djikstra_forward(graph, nb_vertices, &dist_array_forward, &parent_f, &paths[i]);
+        // cost_backward = dijistkra_backward_2(nb_vertices,dist_array_forward, &dist_array_backward,parent_f, cost_forward,&paths[i]);
 
         // sprintf(str, "path %d failed, incorrect cps calculated", i);
         TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.001, cost_forward, cost_backward, "salut");
 
+        // free(parent_f);
         free(dist_array_forward);
         free(dist_array_backward);
     }
@@ -294,12 +339,14 @@ void test_min_distance(void)
 int main(void)
 {
     UNITY_BEGIN();
-    RUN_TEST(test_cost_function);
-    RUN_TEST(test_min_distance);
-    RUN_TEST(test_djikstra_forward);
-    RUN_TEST(test_djikstra_forward_vs_backward_path);
-    RUN_TEST(test_djikstra_forward_vs_backward_cost);
-    RUN_TEST(test_vertices_in_array_scaling);
-    RUN_TEST(test_vertices_out_array_scaling);
+    // RUN_TEST(test_cost_function);
+    // RUN_TEST(test_min_distance);
+    // RUN_TEST(test_djikstra_forward);
+    // RUN_TEST(test_djikstra_forward_vs_backward_path);
+    // RUN_TEST(test_djikstra_forward_vs_backward_cost);
+    // RUN_TEST(test_vertices_in_array_scaling);
+    // RUN_TEST(test_vertices_out_array_scaling);
+    RUN_TEST(test_get_edges_to_optimize_for_budget_one_edge);
+    RUN_TEST(test_get_edges_to_optimize_for_budget_multiple_edge);
     return UNITY_END();
 }

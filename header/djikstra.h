@@ -31,7 +31,8 @@ typedef struct List_node_t
     struct List_node_t *next;
 } list_node_t;
 
-void free_select_edge(selected_edge_t * head);
+void print_selected_edges(selected_edge_t * head);
+void free_select_edges(selected_edge_t * head);
 void new_selected_edge(int edge_id, long double cost_saved, selected_edge_t **head);
 double dijistkra_backward_2(int V,double *forward_djikstra, double **backward_djikstra, int *parent_f, double djikstra_cost,path_t * path);
 void dijistkra_test(double * forward_djikstra, double ** backward_djikstra,int * parent_f,int ** parent_b,int destination,double djikstra_cost, int V);

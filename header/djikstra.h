@@ -19,7 +19,7 @@ typedef struct thread_arg_t
 }thread_arg_t;
 
 typedef struct selected_edge_t{
-    int edge_id;
+    unsigned int edge_id;
     long double cost_saved;
     struct selected_edge_t *next;
 } selected_edge_t;
@@ -33,7 +33,7 @@ typedef struct List_node_t
 
 void print_selected_edges(selected_edge_t * head);
 void free_select_edges(selected_edge_t * head);
-void new_selected_edge(int edge_id, long double cost_saved, selected_edge_t **head);
+void new_selected_edge(unsigned edge_id, long double cost_saved, selected_edge_t **head);
 double dijistkra_backward_2(int V,double *forward_djikstra, double **backward_djikstra, int *parent_f, double djikstra_cost,path_t * path);
 void dijistkra_test(double * forward_djikstra, double ** backward_djikstra,int * parent_f,int ** parent_b,int destination,double djikstra_cost, int V);
 void get_edges_to_optimize_for_budget(long double budget, char * graphe_file_name, char * paths_file_name,selected_edge_t ** selected_edges);

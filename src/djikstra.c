@@ -24,7 +24,7 @@ void free_select_edges(selected_edge_t *head)
     }
 }
 
-void new_selected_edge(int edge_id, long double cost_saved, selected_edge_t **head)
+void new_selected_edge(unsigned edge_id, long double cost_saved, selected_edge_t **head)
 {
     selected_edge_t *new_edge = (struct selected_edge_t *)calloc(1, sizeof(struct selected_edge_t));
     if (new_edge == NULL)
@@ -250,7 +250,7 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
         }
         else
         {
-            new_selected_edge(edge_id_to_optimize, max_saved_cost, selected_edges);
+            new_selected_edge(edge_array[edge_id_to_optimize]->id, max_saved_cost, selected_edges);
             budget_left = budget_left - edge_array[edge_id_to_optimize]->dist;
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
         }

@@ -236,7 +236,7 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
         // bring for the path where the edge is in the visibility
         init_cost_diff_array(cost_diff_array, nb_edges);
 
-        for (int path_id = 0; (path_id < nb_paths) && impact[path_id]; path_id++)
+        for (int path_id = 0; (path_id < nb_paths); path_id++)
         {
             if (!impact[path_id])
             {
@@ -294,7 +294,6 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
                     impact[path_id] = true;
                 }
             }
-
             new_selected_edge(edge_array[edge_id_to_optimize]->id, max_saved_cost, selected_edges);
             budget_left = budget_left - edge_array[edge_id_to_optimize]->dist;
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;

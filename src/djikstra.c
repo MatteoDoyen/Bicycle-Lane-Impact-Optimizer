@@ -79,9 +79,14 @@ void *compute_optimize_for_budget_threaded(void *arg)
     double *djikstra_backward_dist;
     double *djikstra_forward_dist;
     int *parents_forward;
-
-    for (int path_id = thread_arg->thread_id; path_id < thread_arg->nb_paths; path_id += thread_arg->offset)
+    for (int path_id = thread_arg->thread_id; (path_id < thread_arg->nb_paths); path_id += thread_arg->offset)
     {
+        if (!thread_arg->impact[path_id])
+        {
+            // printf("in\n");
+            continue;
+        }
+        thread_arg->impact[path_id] = false;
         djikstra_cost = djikstra_forward(thread_arg->graph, thread_arg->nb_vertices, &djikstra_forward_dist, &parents_forward, &thread_arg->paths[path_id]);
         djikstra_backward(thread_arg->graph, thread_arg->nb_vertices, &djikstra_backward_dist, NULL, &thread_arg->paths[path_id]);
         free(parents_forward);
@@ -107,6 +112,7 @@ void *compute_optimize_for_budget_threaded(void *arg)
         free(djikstra_backward_dist);
         free(djikstra_forward_dist);
     }
+    // printf("out\n");
     return NULL;
 }
 
@@ -122,10 +128,17 @@ void get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_
     int edge_id_to_optimize;
     bool stop = false;
     pthread_mutex_t mutex_cost_diff_array;
+
     pthread_mutex_init(&mutex_cost_diff_array, NULL);
 
     get_graph(graphe_file_name, ";", &graph, &edge_array, &nb_vertices, &nb_edges);
     get_paths(paths_file_name, ";", &paths, &nb_paths);
+
+    bool *impact = calloc(1, sizeof(bool) * nb_paths);
+    for (int i = 0; i < nb_paths; i++)
+    {
+        impact[i] = true;
+    }
 
     long double cost_diff_array[nb_edges];
     thread_arg_t thread_arg[nb_edges];
@@ -142,6 +155,7 @@ void get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_
         thread_arg[i].offset = nb_thread;
         thread_arg[i].mutex = &mutex_cost_diff_array;
         thread_arg[i].paths = paths;
+        thread_arg[i].impact = impact;
     }
 
     while (!stop)
@@ -157,6 +171,7 @@ void get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_
         {
             pthread_join(threads[i], NULL);
         }
+        // printf("retour\n");
 
         // wait eachother
 
@@ -164,10 +179,20 @@ void get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_
         get_max_edge_to_optimize(cost_diff_array, nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, budget_left);
         if (edge_id_to_optimize == -1)
         {
+            // printf("budget left : %Lf\n",budget_left);
             stop = true;
         }
         else
         {
+            // printf("euuu\n");
+            for (int path_id = 0; path_id < nb_paths; path_id++)
+            {
+                if (edge_is_in_visibilite(&paths[path_id], edge_array[edge_id_to_optimize]))
+                {
+                    // printf("la ?\n");
+                    impact[path_id] = true;
+                }
+            }
             new_selected_edge(edge_id_to_optimize, max_saved_cost, selected_edges);
             budget_left = budget_left - edge_array[edge_id_to_optimize]->dist;
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
@@ -196,6 +221,13 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
     get_graph(graphe_file_name, ";", &graph, &edge_array, &nb_vertices, &nb_edges);
     get_paths(paths_file_name, ";", &paths, &nb_paths);
 
+    bool impact[nb_paths];
+
+    for (int i = 0; i < nb_paths; i++)
+    {
+        impact[i] = true;
+    }
+
     long double cost_diff_array[nb_edges];
 
     while (!stop)
@@ -204,9 +236,14 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
         // bring for the path where the edge is in the visibility
         init_cost_diff_array(cost_diff_array, nb_edges);
 
-        for (int path_id = 0; path_id < nb_paths; path_id++)
+        for (int path_id = 0; (path_id < nb_paths) && impact[path_id]; path_id++)
         {
-
+            if (!impact[path_id])
+            {
+                // printf("in\n");
+                continue;
+            }
+            impact[path_id] = false;
             djikstra_cost = djikstra_backward(graph, nb_vertices, &djikstra_backward_dist, NULL, &paths[path_id]);
 
             djikstra_forward(graph, nb_vertices, &djikstra_forward_dist, NULL, &paths[path_id]);
@@ -250,6 +287,14 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
         }
         else
         {
+            for (int path_id = 0; path_id < nb_paths; path_id++)
+            {
+                if (edge_is_in_visibilite(&paths[path_id], edge_array[edge_id_to_optimize]))
+                {
+                    impact[path_id] = true;
+                }
+            }
+
             new_selected_edge(edge_array[edge_id_to_optimize]->id, max_saved_cost, selected_edges);
             budget_left = budget_left - edge_array[edge_id_to_optimize]->dist;
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;

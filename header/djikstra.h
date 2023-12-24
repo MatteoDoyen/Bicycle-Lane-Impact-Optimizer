@@ -15,6 +15,7 @@ typedef struct thread_arg_t
     unsigned int thread_id;
     unsigned int offset;
     long double * cost_diff_array;
+    bool * impact;
     pthread_mutex_t *mutex;
 }thread_arg_t;
 

@@ -8,12 +8,12 @@ typedef struct thread_arg_t
 {
     path_t * paths;
     vertex_t* graph;
-    int nb_vertices;
-    int nb_edges;
-    int nb_paths;
+    uint32_t nb_vertices;
+    uint32_t nb_edges;
+    uint32_t nb_paths;
     edge_t ** edge_array;
-    unsigned int thread_id;
-    unsigned int offset;
+    uint32_t thread_id;
+    uint32_t offset;
     long double * cost_diff_array;
     bool * impact;
     pthread_mutex_t *mutex;
@@ -41,7 +41,7 @@ void get_edges_to_optimize_for_budget(long double budget, char * graphe_file_nam
 void get_edges_to_optimize_for_budget_threaded(long double budget, char * graphe_file_name, char * paths_file_name,int nb_thread,selected_edge_t ** selected_edges);
 int min_distance(double dist[], list_node_t *vertexToVisit);
 void init_cost_diff_array(long double *diff_array, unsigned int nbedge_t);
-void get_max_edge_to_optimize(long double *diff_array, unsigned int nb_edges, edge_t **edge_array, int *edge_id_to_optimize,long double * saved_cost,long double budget_left);
+void get_max_edge_to_optimize(long double *diff_array,uint32_t nb_edges, edge_t **edge_array, int *edge_id_to_optimize,long double * saved_cost,long double budget_left);
 double djikstra_forward(struct vertex_t *graph, int V, double **dist_array, int **parent_array, path_t *path);
 double djikstra_backward(struct vertex_t *graph, int V, double **dist_array, int **parent_array, path_t *path);
 double updated_dist(edge_t *edge, path_t *path,double *foward_djikstra,double *backward_djikstra);

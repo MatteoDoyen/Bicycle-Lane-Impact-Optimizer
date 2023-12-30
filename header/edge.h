@@ -1,6 +1,7 @@
 #ifndef EDGE_H
 #define EDGE_H
 #include <stdbool.h>
+#include <stdint.h>
 // Forward declaration of edge_t struct
 struct edge_t;
 
@@ -20,7 +21,7 @@ typedef struct edge_t {
     double dist;
     double danger;
     bool amenagement;
-    unsigned int id;
+    uint32_t id;
     struct vertex_t *succ;
     struct vertex_t *pred;
 } edge_t;
@@ -35,10 +36,9 @@ typedef struct edge_t {
 
 #define DEFAULT_NEIGHBOURS 20 // by experiences it seems that there is rarely ever a node with more than 20 neighbours
 
-
-unsigned int get_nb_node(char*** csv_matrix, int nb_row);
-edge_t *create_edge(int id, double dist, double danger, vertex_t *pred, vertex_t *succ);
-void get_graph(const char *filename,char * separator, vertex_t **graph, edge_t*** edge_array, int *numvertex_ts, int *nbedge_ts);
+uint32_t get_nb_node(char*** csv_matrix, uint32_t nb_row);
+edge_t *create_edge(uint32_t id, double dist, double danger, vertex_t *pred, vertex_t *succ);
+void get_graph(const char *filename,char * separator, vertex_t **graph, edge_t*** edge_array, uint32_t *numvertex_ts, uint32_t *nbedge_ts);
 void free_graph(vertex_t *graph,int num_vertices);
 void free_edge(edge_t **edge_array,int nb_edges);
 

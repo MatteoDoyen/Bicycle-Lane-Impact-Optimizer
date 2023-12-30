@@ -2,10 +2,10 @@
 #include <stdbool.h>
 #include "../header/util.h"
 
-bool vertex_is_in_visibilite(path_t *paths, unsigned int vertex_id)
+bool vertex_is_in_visibilite(path_t *paths, uint32_t vertex_id)
 {
 
-    for (unsigned int i = 0; i < paths->nb_visibilite; i++)
+    for (uint32_t i = 0; i < paths->nb_visibilite; i++)
     {
         if (paths->visibilite[i] == vertex_id)
         {
@@ -60,17 +60,17 @@ bool troncon_is_in_path(path_t *paths, edge_t *edge)
     return false;
 }
 
-void get_paths(char *csv_path, char *csv_delimiter,path_t ** paths_ref, int *nb_paths)
+void get_paths(char *csv_path, char *csv_delimiter,path_t ** paths_ref, uint32_t *nb_paths)
 {
+    uint32_t nb_col, nb_row;
+    uint32_t id_offset; //to ignore the header row of the csv file
 
-    int nb_col, nb_row;
-    int id_offset; //to ignore the header row of the csv file
-
+    // fprintf(stderr,"before alloc\n");
     char ***csv_matrix = readCSVFile(csv_path, &nb_row, &nb_col, csv_delimiter);
     (*paths_ref) = calloc(1,sizeof(path_t) * nb_row);
     path_t *paths = (*paths_ref);
     memset(paths, 0, sizeof(path_t) * nb_row);
-    for (int i = 1; i < nb_row; i++)
+    for (uint32_t i = 1; i < nb_row; i++)
     {
         id_offset = i-1;
 
@@ -79,6 +79,8 @@ void get_paths(char *csv_path, char *csv_delimiter,path_t ** paths_ref, int *nb_
         paths[id_offset].profil = atof(csv_matrix[i][T_PROFIL_INDEX]);
         paths[id_offset].origin = atoi(csv_matrix[i][T_ORIGIN_INDEX]);
         paths[id_offset].destination = atoi(csv_matrix[i][T_DESTINATION_INDEX]);
+        printf("%s",csv_matrix[i][T_VISIBILITE_INDEX]);
+        // break;
         paths[id_offset].visibilite = parseJsonIntegerArray(csv_matrix[i][T_VISIBILITE_INDEX], &paths[id_offset].nb_visibilite);
         paths[id_offset].chemin = parseJsonIntegerArray(csv_matrix[i][T_CHEMIN_INDEX], &paths[id_offset].nb_chemin);
         paths[id_offset].cps_djikstra_danger = atof(csv_matrix[i][T_DANGER_CPS_INDEX]);
@@ -87,13 +89,14 @@ void get_paths(char *csv_path, char *csv_delimiter,path_t ** paths_ref, int *nb_
         paths[id_offset].foward_djikstra = NULL;
         paths[id_offset].backward_djikstra = NULL;
     }
+    // fprintf(stderr,"after\n");
     freeCSVMatrix(csv_matrix, nb_row, nb_col);
     *nb_paths = (nb_row - 1);
 }
 
-void free_paths(path_t* paths,int nb_paths){
+void free_paths(path_t* paths,uint32_t nb_paths){
 
-    for (int i = 0; i < nb_paths; i++)
+    for (uint32_t i = 0; i < nb_paths; i++)
     {
         free(paths[i].djikstra_sp);
         free(paths[i].visibilite);

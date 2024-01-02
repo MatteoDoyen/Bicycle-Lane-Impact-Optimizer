@@ -125,16 +125,16 @@ void test_updated_dist(void){
 void test_vertices_out_array_scaling(void)
 {
     vertex_t vertices[DEFAULT_NEIGHBOURS + 2];
-    edge_t **edges=calloc(1,sizeof(edge_t *)*(DEFAULT_NEIGHBOURS+2));
+    edge_t **edges=calloc((DEFAULT_NEIGHBOURS+2),sizeof(edge_t *));
 
     for (unsigned int i = 0; i < DEFAULT_NEIGHBOURS + 2; i++)
     {
         vertices[i].nb_edges_in = 0;
         vertices[i].max_edges_in = DEFAULT_NEIGHBOURS;
-        vertices[i].in_edges = calloc(1, sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        vertices[i].in_edges = calloc(DEFAULT_NEIGHBOURS, sizeof(edge_t *));
         vertices[i].nb_edges_out = 0;
         vertices[i].max_edges_out = DEFAULT_NEIGHBOURS;
-        vertices[i].out_edges = calloc(1, sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        vertices[i].out_edges = calloc(DEFAULT_NEIGHBOURS, sizeof(edge_t *));
         vertices[i].id = i;
 
         // first vertex is the predecessor vertex for all edges
@@ -172,10 +172,10 @@ void test_vertices_in_array_scaling(void)
 
         vertices[i].nb_edges_in = 0;
         vertices[i].max_edges_in = DEFAULT_NEIGHBOURS;
-        vertices[i].in_edges = calloc(1, sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        vertices[i].in_edges = calloc(DEFAULT_NEIGHBOURS, sizeof(edge_t *));
         vertices[i].nb_edges_out = 0;
         vertices[i].max_edges_out = DEFAULT_NEIGHBOURS;
-        vertices[i].out_edges = calloc(1, sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        vertices[i].out_edges = calloc(DEFAULT_NEIGHBOURS, sizeof(edge_t *));
         vertices[i].id = i;
 
         // first vertex is the successor vertex for all edges
@@ -207,7 +207,7 @@ void test_djikstra_forward_vs_backward_path(void)
 {
     vertex_t *graph;
     edge_t **edge_array;
-    path_t *paths;
+    path_t **paths;
     uint32_t nb_vertices, nb_paths, nb_edges;
 
     double *dist_array_forward, *dist_array_backward;
@@ -220,13 +220,13 @@ void test_djikstra_forward_vs_backward_path(void)
     
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        djikstra_forward(graph, nb_vertices, &dist_array_forward, &parent_array_forward, &paths[i]);
-        // dijistkra_test(dist_array_forward, &dist_array_backward,parent_array_forward,&parent_array_backward,paths[i].destination, djikstra_cost, nb_vertices);
-        djikstra_backward(graph, nb_vertices, &dist_array_backward, &parent_array_backward, &paths[i]);
+        djikstra_forward(graph, nb_vertices, &dist_array_forward, &parent_array_forward, paths[i]);
+        // dijistkra_test(dist_array_forward, &dist_array_backward,parent_array_forward,&parent_array_backward,paths[i]->destination, djikstra_cost, nb_vertices);
+        djikstra_backward(graph, nb_vertices, &dist_array_backward, &parent_array_backward, paths[i]);
         // used to get the number of element
         // when current=-1 there is no parent and the previous current is equal to the
         // destination for backward djikstra
-        current = paths[i].origin;
+        current = paths[i]->origin;
         int vertex_nb = 0;
         do
         {
@@ -236,7 +236,7 @@ void test_djikstra_forward_vs_backward_path(void)
         // we store the vertices id of the shortest path
         // found by the backward djikstra in the inverted order
         diff_path = calloc(1, sizeof(int) * vertex_nb);
-        current = paths[i].origin;
+        current = paths[i]->origin;
         for (int x = vertex_nb - 1; x >= 0; x--)
         {
             diff_path[x] = current;
@@ -244,7 +244,7 @@ void test_djikstra_forward_vs_backward_path(void)
         }
         // We can now compare the path found by the backward djikstra
         // with the path found by the forward djikstra
-        current = paths[i].destination;
+        current = paths[i]->destination;
         int x = 0;
         while (current != -1 && x < vertex_nb)
         {
@@ -267,7 +267,7 @@ void test_djikstra_forward_vs_backward_cost(void)
 {
     vertex_t *graph;
     edge_t **edge_array;
-    path_t *paths;
+    path_t **paths;
     uint32_t nb_vertices, nb_edges,nb_paths;
     double *dist_array_forward, *dist_array_backward;
     // int *parent_f;
@@ -279,8 +279,8 @@ void test_djikstra_forward_vs_backward_cost(void)
 
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        cost_forward = djikstra_forward(graph, nb_vertices, &dist_array_forward, NULL, &paths[i]);
-        cost_backward = djikstra_backward(graph, nb_vertices, &dist_array_backward, NULL, &paths[i]);
+        cost_forward = djikstra_forward(graph, nb_vertices, &dist_array_forward, NULL, paths[i]);
+        cost_backward = djikstra_backward(graph, nb_vertices, &dist_array_backward, NULL, paths[i]);
         // cost_forward = djikstra_forward(graph, nb_vertices, &dist_array_forward, &parent_f, &paths[i]);
         // cost_backward = dijistkra_backward_2(nb_vertices,dist_array_forward, &dist_array_backward,parent_f, cost_forward,&paths[i]);
 
@@ -301,7 +301,7 @@ void test_djikstra_forward(void)
 
     vertex_t *graph;
     edge_t **edge_array;
-    path_t *paths;
+    path_t **paths;
     uint32_t nb_vertices, nb_edges, nb_paths;
     double *dist_array;
     double cost, expected_cost;
@@ -312,8 +312,8 @@ void test_djikstra_forward(void)
 
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        cost = djikstra_forward(graph, nb_vertices, &dist_array, NULL, &paths[i]);
-        expected_cost = calc_path_cps(paths[i].cps_djikstra_dist, paths[i].cps_djikstra_danger, paths[i].profil);
+        cost = djikstra_forward(graph, nb_vertices, &dist_array, NULL, paths[i]);
+        expected_cost = calc_path_cps(paths[i]->cps_djikstra_dist, paths[i]->cps_djikstra_danger, paths[i]->profil);
 
         // sprintf(str, "path %d failed, incorrect cps calculated", i);
         TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.000001, expected_cost, cost, "str");

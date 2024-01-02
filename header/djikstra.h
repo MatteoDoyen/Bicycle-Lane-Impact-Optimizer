@@ -6,7 +6,7 @@
 
 typedef struct thread_arg_t
 {
-    path_t * paths;
+    path_t ** paths;
     vertex_t* graph;
     uint32_t nb_vertices;
     uint32_t nb_edges;

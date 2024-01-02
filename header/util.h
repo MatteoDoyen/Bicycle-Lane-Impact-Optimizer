@@ -1,6 +1,6 @@
 #ifndef UTIL_H
 #define UTIL_H
-#define MAX_LINE_SIZE 20000
+#define MAX_LINE_SIZE 350000
 #define MAX_FIELDS 14
 #include <stdint.h>
 

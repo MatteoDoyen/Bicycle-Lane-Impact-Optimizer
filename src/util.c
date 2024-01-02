@@ -41,10 +41,10 @@ char ***readCSVFile(const char *filename, uint32_t *numRows, uint32_t *numCols, 
     fseek(file, 0, SEEK_SET);
 
     // Allocate memory for the matrix
-    char ***matrix = (char ***)calloc(1,*numRows * sizeof(char **));
+    char ***matrix = (char ***)calloc(*numRows, sizeof(char **));
     for (uint32_t i = 0; i < *numRows; ++i)
     {
-        matrix[i] = (char **)calloc(1,*numCols * sizeof(char *));
+        matrix[i] = (char **)calloc(*numCols, sizeof(char *));
         for (uint32_t j = 0; j < *numCols; ++j)
         {
             // matrix[i][j] = (char *)calloc(1,MAX_LINE_SIZE * sizeof(char));
@@ -62,7 +62,7 @@ char ***readCSVFile(const char *filename, uint32_t *numRows, uint32_t *numCols, 
         while (token != NULL && col < *numCols)
         {
             // max_line_size = ((int32_t)strlen(token)) >max_line_size ?((int32_t)strlen(token)) :max_line_size; 
-            matrix[row][col] = (char *)calloc(1,(strlen(token)+1) * sizeof(char));
+            matrix[row][col] = (char *)calloc((strlen(token)+1), sizeof(char));
             strcpy(matrix[row][col], token);
             col++;
             token = strtok(NULL, delimiter);
@@ -110,7 +110,7 @@ void freeCSVMatrix(char ***matrix, int32_t numRows, int32_t numCols)
 
     int arraySize = cJSON_GetArraySize(root);
     *nb_element = arraySize;
-    unsigned int *resultArray = ( unsigned int *)calloc(1,arraySize * sizeof( unsigned int));
+    unsigned int *resultArray = ( unsigned int *)calloc(arraySize,sizeof( unsigned int));
 
     if (!resultArray)
     {

@@ -58,10 +58,10 @@ void get_graph(const char *filename,char * separator, vertex_t **graph, edge_t**
     // Assuming the maximum node index found is the number of node and that all node index are contiguous
     *num_vertices=get_nb_node(csv_matrix,nb_row);
     // fprintf(stderr,"nb vertices %d\n",get_nb_node(csv_matrix,nb_row));
-    *graph = (vertex_t *)calloc(1,*num_vertices * sizeof(vertex_t));
+    *graph = (vertex_t *)calloc(*num_vertices,sizeof(vertex_t));
 
     // The number of rows is the exact number of edges in the csv file
-    *edge_array = (edge_t **)calloc(1,nb_row * sizeof(edge_t*));
+    *edge_array = (edge_t **)calloc(nb_row,sizeof(edge_t*));
     // fprintf(stderr,"after alloc %d\n",*num_vertices);
 
     //Initialize each node

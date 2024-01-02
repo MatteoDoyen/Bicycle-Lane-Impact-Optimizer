@@ -45,7 +45,7 @@ int main()
     //     printf("%i %f\n",budget,elapsed_time_thread);
     // }
     selected_edge_t *selected_edges = NULL;
-    get_edges_to_optimize_for_budget_threaded(10, GRAPH_FILE_NAME, PATHS_FILE_NAME, 12, &selected_edges);
+    get_edges_to_optimize_for_budget(10, GRAPH_FILE_NAME, PATHS_FILE_NAME, &selected_edges);
     print_selected_edges(selected_edges);
     free_select_edges(selected_edges);
 

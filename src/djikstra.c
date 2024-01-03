@@ -63,6 +63,10 @@ void *compute_optimize_for_budget_threaded(void *arg)
         // dijistkra_backward_2(thread_arg->nb_vertices, djikstra_forward_dist, &djikstra_backward_dist, parents_forward, djikstra_cost, &thread_arg->paths[path_id]);
         for (uint32_t edge_id = 0; edge_id < thread_arg->nb_edges; edge_id++)
         {
+
+            if(thread_arg->edge_array[edge_id]->dist > ((double)*thread_arg->budget_left)){
+                    continue;
+            }
             // if the edge's vertexes are in the visibility of the path
             //  and the edge is not already optimized
             if (edge_is_in_visibilite(thread_arg->paths[path_id], thread_arg->edge_array[edge_id]) && (thread_arg->edge_array[edge_id]->dist != thread_arg->edge_array[edge_id]->danger))
@@ -88,7 +92,7 @@ void *compute_optimize_for_budget_threaded(void *arg)
 
 void get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_file_name, char *paths_file_name, int nb_thread, selected_edge_t **selected_edges)
 {
-    vertex_t *graph;
+    vertex_t **graph;
     path_t **paths;
     edge_t **edge_array;
     (*selected_edges) = NULL;
@@ -104,15 +108,15 @@ void get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_
     get_graph(graphe_file_name, ";", &graph, &edge_array, &nb_vertices, &nb_edges);
     // fprintf(stderr,"before path\n");
     get_paths(paths_file_name, ";", &paths, &nb_paths);
-    // fprintf(stderr,"after\n");
+    fprintf(stderr,"start algo\n");
     bool *impact = calloc(nb_paths, sizeof(bool));
     for (uint32_t i = 0; i < nb_paths; i++)
     {
         impact[i] = true;
     }
 
-    long double cost_diff_array[nb_edges];
-    thread_arg_t thread_arg[nb_edges];
+    long double *cost_diff_array = calloc(nb_edges,sizeof(long double));
+    thread_arg_t thread_arg[nb_thread];
     pthread_t threads[nb_thread];
     for (int i = 0; i < nb_thread; i++)
     {
@@ -127,6 +131,7 @@ void get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_
         thread_arg[i].mutex = &mutex_cost_diff_array;
         thread_arg[i].paths = paths;
         thread_arg[i].impact = impact;
+        thread_arg[i].budget_left = &budget_left;
     }
 
     while (!stop)
@@ -198,7 +203,7 @@ void get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_
 -- -------------------------------------------------------------------------- */
 void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name, char *paths_file_name, selected_edge_t **selected_edges)
 {
-    vertex_t *graph;
+    vertex_t **graph;
     path_t **paths;
     edge_t **edge_array;
     (*selected_edges) = NULL;
@@ -223,7 +228,7 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
     }
 
     long double cost_diff_array[nb_edges];
-
+    fprintf(stderr,"debut algo \n");
     while (!stop)
     {
         // used to know the cost difference, the optimization of the edge would
@@ -247,7 +252,9 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
 
             for (uint32_t edge_id = 0; edge_id < nb_edges; edge_id++)
             {
-
+                if(edge_array[edge_id]->dist>budget_left){
+                    continue;
+                }
                 //  if the edge's vertexes are in the visibility of the path
                 //  and the edge is not already optimized
                 if (edge_is_in_visibilite(paths[path_id], edge_array[edge_id]) && (edge_array[edge_id]->dist != edge_array[edge_id]->danger))
@@ -265,6 +272,7 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
                     cost_difference = djikstra_cost - new_djikstra_cost;
                     if (cost_difference > 0)
                     {
+                        // fprintf(stderr,"meilleur chemin trouvéé\n");
                         cost_diff_array[edge_id] = cost_difference + cost_diff_array[edge_id];
                     }
                 }
@@ -292,6 +300,7 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
             }
             new_selected_edge(edge_array[edge_id_to_optimize]->id, max_saved_cost, selected_edges);
             budget_left = budget_left - edge_array[edge_id_to_optimize]->dist;
+            // fprintf(stderr,"budget restant %Lf\n",budget_left);
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
         }
     }
@@ -322,7 +331,6 @@ void get_max_edge_to_optimize(long double *diff_array, uint32_t nb_edges, edge_t
         {
             max_cost_saved = diff_array[id_edge];
             max_cost_edge_id = id_edge;
-            // printf("diff %f budget %Lf\n",edge_array[id_edge]->dist,budget_left);
         }
     }
     if (max_cost_saved > 0)
@@ -344,7 +352,7 @@ double updated_dist(edge_t *edge, path_t *path, double *foward_djikstra, double 
     return foward_djikstra[edge->pred->id] + cost_function(&path->profil, &edge->dist, &edge->dist) + backward_djikstra[edge->succ->id];
 }
 
-double djikstra_forward(struct vertex_t *graph, int V, double **dist_array, int **parent_array, path_t *path)
+double djikstra_forward(struct vertex_t **graph, int V, double **dist_array, int **parent_array, path_t *path)
 {
     (*dist_array) = (double *)calloc(V,  sizeof(double));
     int *parent;
@@ -383,9 +391,9 @@ double djikstra_forward(struct vertex_t *graph, int V, double **dist_array, int 
     verticesToVisit = calloc(1, sizeof(list_node_t));
     verticesToVisit->vertex_id = origin;
     verticesToVisit->next = NULL;
-    for (unsigned int i = 0; i < graph[origin].nb_edges_out; i++)
+    for (unsigned int i = 0; i < graph[origin]->nb_edges_out; i++)
     {
-        dest_vertex_id = graph[origin].out_edges[i]->succ->id;
+        dest_vertex_id = graph[origin]->out_edges[i]->succ->id;
 
         list_node_t *newNode = calloc(1, sizeof(list_node_t));
         toVisitVertex[dest_vertex_id] = true;
@@ -423,16 +431,16 @@ double djikstra_forward(struct vertex_t *graph, int V, double **dist_array, int 
         free(temp);
 
         // Update dist value of the adjacent vertices
-        for (unsigned int edge_i = 0; edge_i < graph[u].nb_edges_out; edge_i++)
+        for (unsigned int edge_i = 0; edge_i < graph[u]->nb_edges_out; edge_i++)
         {
-            dest_vertex_id = graph[u].out_edges[edge_i]->succ->id;
+            dest_vertex_id = graph[u]->out_edges[edge_i]->succ->id;
             if (!vertex_is_in_visibilite(path, dest_vertex_id))
             {
                 continue;
             }
-            if (!markedVertex[dest_vertex_id] && graph[u].out_edges[edge_i] != NULL && ((*dist_array)[u] + cost_function(&path->profil, &graph[u].out_edges[edge_i]->dist, &graph[u].out_edges[edge_i]->danger) < (*dist_array)[dest_vertex_id]))
+            if (!markedVertex[dest_vertex_id] && graph[u]->out_edges[edge_i] != NULL && ((*dist_array)[u] + cost_function(&path->profil, &graph[u]->out_edges[edge_i]->dist, &graph[u]->out_edges[edge_i]->danger) < (*dist_array)[dest_vertex_id]))
             {
-                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(&path->profil, &graph[u].out_edges[edge_i]->dist, &graph[u].out_edges[edge_i]->danger);
+                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(&path->profil, &graph[u]->out_edges[edge_i]->dist, &graph[u]->out_edges[edge_i]->danger);
                 parent[dest_vertex_id] = u;
                 if (!toVisitVertex[dest_vertex_id])
                 {
@@ -459,7 +467,7 @@ double djikstra_forward(struct vertex_t *graph, int V, double **dist_array, int 
     return (*dist_array)[destination];
 }
 
-double djikstra_backward(struct vertex_t *graph, int V, double **dist_array, int **parent_array, path_t *path)
+double djikstra_backward(struct vertex_t **graph, int V, double **dist_array, int **parent_array, path_t *path)
 {
     (*dist_array) = (double *)calloc(V , sizeof(double));
     bool markedVertex[V];
@@ -499,9 +507,9 @@ double djikstra_backward(struct vertex_t *graph, int V, double **dist_array, int
     verticesToVisit = calloc(1, sizeof(list_node_t));
     verticesToVisit->vertex_id = origin;
     verticesToVisit->next = NULL;
-    for (unsigned int i = 0; i < graph[origin].nb_edges_in; i++)
+    for (unsigned int i = 0; i < graph[origin]->nb_edges_in; i++)
     {
-        dest_vertex_id = graph[origin].in_edges[i]->pred->id;
+        dest_vertex_id = graph[origin]->in_edges[i]->pred->id;
 
         list_node_t *newNode = calloc(1, sizeof(list_node_t));
         toVisitVertex[dest_vertex_id] = true;
@@ -540,16 +548,16 @@ double djikstra_backward(struct vertex_t *graph, int V, double **dist_array, int
         free(temp);
 
         // Update dist value of the adjacent vertices
-        for (unsigned int edge_i = 0; edge_i < graph[u].nb_edges_in; edge_i++)
+        for (unsigned int edge_i = 0; edge_i < graph[u]->nb_edges_in; edge_i++)
         {
-            dest_vertex_id = graph[u].in_edges[edge_i]->pred->id;
+            dest_vertex_id = graph[u]->in_edges[edge_i]->pred->id;
             if (!vertex_is_in_visibilite(path, dest_vertex_id))
             {
                 continue;
             }
-            if (!markedVertex[dest_vertex_id] && graph[u].in_edges[edge_i] != NULL && ((*dist_array)[u] + cost_function(&path->profil, &graph[u].in_edges[edge_i]->dist, &graph[u].in_edges[edge_i]->danger) < (*dist_array)[dest_vertex_id]))
+            if (!markedVertex[dest_vertex_id] && graph[u]->in_edges[edge_i] != NULL && ((*dist_array)[u] + cost_function(&path->profil, &graph[u]->in_edges[edge_i]->dist, &graph[u]->in_edges[edge_i]->danger) < (*dist_array)[dest_vertex_id]))
             {
-                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(&path->profil, &graph[u].in_edges[edge_i]->dist, &graph[u].in_edges[edge_i]->danger);
+                (*dist_array)[dest_vertex_id] = (*dist_array)[u] + cost_function(&path->profil, &graph[u]->in_edges[edge_i]->dist, &graph[u]->in_edges[edge_i]->danger);
                 parent[dest_vertex_id] = u;
                 if (!toVisitVertex[dest_vertex_id])
                 {

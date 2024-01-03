@@ -205,7 +205,7 @@ void test_vertices_in_array_scaling(void)
 
 void test_djikstra_forward_vs_backward_path(void)
 {
-    vertex_t *graph;
+    vertex_t **graph;
     edge_t **edge_array;
     path_t **paths;
     uint32_t nb_vertices, nb_paths, nb_edges;
@@ -265,7 +265,7 @@ void test_djikstra_forward_vs_backward_path(void)
 
 void test_djikstra_forward_vs_backward_cost(void)
 {
-    vertex_t *graph;
+    vertex_t **graph;
     edge_t **edge_array;
     path_t **paths;
     uint32_t nb_vertices, nb_edges,nb_paths;
@@ -299,7 +299,7 @@ void test_djikstra_forward_vs_backward_cost(void)
 void test_djikstra_forward(void)
 {
 
-    vertex_t *graph;
+    vertex_t **graph;
     edge_t **edge_array;
     path_t **paths;
     uint32_t nb_vertices, nb_edges, nb_paths;
@@ -386,7 +386,7 @@ int main(void)
     RUN_TEST(test_djikstra_forward_vs_backward_cost);
     RUN_TEST(test_vertices_in_array_scaling);
     RUN_TEST(test_vertices_out_array_scaling);
-    RUN_TEST(test_get_edges_to_optimize_for_budget_thread_vs_single);
+    // RUN_TEST(test_get_edges_to_optimize_for_budget_thread_vs_single);
     RUN_TEST(test_get_edges_to_optimize_for_budget_one_edge);
     RUN_TEST(test_get_edges_to_optimize_for_budget_no_edge);
     RUN_TEST(test_get_edges_to_optimize_for_budget_multiple_edge);

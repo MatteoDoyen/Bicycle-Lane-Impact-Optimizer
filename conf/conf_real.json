@@ -1,0 +1,14 @@
+{
+    "path" : {
+        "origin" : 1,
+        "destination" : 2,
+        "profile" : 13,
+        "distance" : 4,
+        "danger" : 5,
+        "original_path" : 3,
+        "shortest_path" : 10,
+        "distance_shortest_path" : 11,
+        "danger_shortest_path" : 12,
+        "visibility" : 9
+    } 
+}

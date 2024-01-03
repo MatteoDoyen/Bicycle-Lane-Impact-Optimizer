@@ -48,7 +48,7 @@ edge_t *create_edge(uint32_t id, double dist, double danger, vertex_t *pred, ver
 }
 
 // Function to read CSV file and create graph
-void get_graph(const char *filename,char * separator, vertex_t **graph, edge_t*** edge_array, uint32_t *num_vertices, uint32_t *nb_edges)
+void get_graph(const char *filename,char * separator, vertex_t ***graph_ref, edge_t*** edge_array, uint32_t *num_vertices, uint32_t *nb_edges)
 {
     unsigned int node_i,node_j;
     uint32_t nb_col, nb_row;
@@ -58,7 +58,11 @@ void get_graph(const char *filename,char * separator, vertex_t **graph, edge_t**
     // Assuming the maximum node index found is the number of node and that all node index are contiguous
     *num_vertices=get_nb_node(csv_matrix,nb_row);
     // fprintf(stderr,"nb vertices %d\n",get_nb_node(csv_matrix,nb_row));
-    *graph = (vertex_t *)calloc(*num_vertices,sizeof(vertex_t));
+
+    *graph_ref = (vertex_t **)calloc(*num_vertices,sizeof(vertex_t *));
+    vertex_t **graph = *graph_ref;
+
+    // *graph = (vertex_t *)calloc(*num_vertices,sizeof(vertex_t));
 
     // The number of rows is the exact number of edges in the csv file
     *edge_array = (edge_t **)calloc(nb_row,sizeof(edge_t*));
@@ -67,13 +71,14 @@ void get_graph(const char *filename,char * separator, vertex_t **graph, edge_t**
     //Initialize each node
     for (uint32_t i = 0; i < *num_vertices; i++)
     {
-        (*graph)[i].nb_edges_in = 0;
-        (*graph)[i].max_edges_in = DEFAULT_NEIGHBOURS;
-        (*graph)[i].in_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
-        (*graph)[i].nb_edges_out = 0;
-        (*graph)[i].max_edges_out = DEFAULT_NEIGHBOURS;
-        (*graph)[i].out_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
-        (*graph)[i].id = i;
+        graph[i] = calloc(1,sizeof(vertex_t));
+        graph[i]->nb_edges_in = 0;
+        graph[i]->max_edges_in = DEFAULT_NEIGHBOURS;
+        graph[i]->in_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        graph[i]->nb_edges_out = 0;
+        graph[i]->max_edges_out = DEFAULT_NEIGHBOURS;
+        graph[i]->out_edges = calloc(1,sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        graph[i]->id = i;
     }
     // fprintf(stderr,"after init graph\n");
 
@@ -86,19 +91,20 @@ void get_graph(const char *filename,char * separator, vertex_t **graph, edge_t**
             atoi(csv_matrix[i][G_ID_INDEX]),
             atof(csv_matrix[i][G_DISTANCE_INDEX]),
             atof(csv_matrix[i][G_DANGER_INDEX]),
-            &(*graph)[node_i],
-            &(*graph)[node_j]);
+            graph[node_i],
+            graph[node_j]);
     }
     // fprintf(stderr,"euuu\n");
     // fprintf(stderr,"after init edges\n");
     freeCSVMatrix(csv_matrix, nb_row, nb_col);
 }
 
-void free_graph(vertex_t *graph, int num_vertices){
+void free_graph(vertex_t **graph, int num_vertices){
     for (int i = 0; i < num_vertices; i++)
     {
-        free(graph[i].out_edges);
-        free(graph[i].in_edges);
+        free(graph[i]->out_edges);
+        free(graph[i]->in_edges);
+        free(graph[i]);
     }
     free(graph);
 }

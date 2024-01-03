@@ -1,6 +1,7 @@
 #include "../header/djikstra.h"
 #include <stdbool.h>
 #include <stdlib.h>
+#include "../header/util.h"
 
 void print_selected_edges(selected_edge_t *head)
 {
@@ -44,14 +45,14 @@ void *compute_optimize_for_budget_threaded(void *arg)
 {
     thread_arg_t *thread_arg = (thread_arg_t *)arg;
     long double new_djikstra_cost, djikstra_cost, cost_difference;
-    double *djikstra_backward_dist;
-    double *djikstra_forward_dist;
+    double *djikstra_backward_dist = (double *)calloc(thread_arg->nb_vertices, sizeof(double));
+    double *djikstra_forward_dist = (double *)calloc(thread_arg->nb_vertices, sizeof(double));
     int *parents_forward;
-    // by offsetting the loop index with the number of thread, we are sure that no two thread will ever 
+    // by offsetting the loop index with the number of thread, we are sure that no two thread will ever
     // work on the same path
     for (uint32_t path_id = thread_arg->thread_id; (path_id < thread_arg->nb_paths); path_id += thread_arg->offset)
     {
-        
+
         if (!thread_arg->impact[path_id])
         {
             continue;
@@ -60,12 +61,12 @@ void *compute_optimize_for_budget_threaded(void *arg)
         djikstra_cost = djikstra_forward(thread_arg->graph, thread_arg->nb_vertices, &djikstra_forward_dist, &parents_forward, thread_arg->paths[path_id]);
         djikstra_backward(thread_arg->graph, thread_arg->nb_vertices, &djikstra_backward_dist, NULL, thread_arg->paths[path_id]);
         free(parents_forward);
-        // dijistkra_backward_2(thread_arg->nb_vertices, djikstra_forward_dist, &djikstra_backward_dist, parents_forward, djikstra_cost, &thread_arg->paths[path_id]);
         for (uint32_t edge_id = 0; edge_id < thread_arg->nb_edges; edge_id++)
         {
 
-            if(thread_arg->edge_array[edge_id]->dist > ((double)*thread_arg->budget_left)){
-                    continue;
+            if (thread_arg->edge_array[edge_id]->dist > ((double)*thread_arg->budget_left))
+            {
+                continue;
             }
             // if the edge's vertexes are in the visibility of the path
             //  and the edge is not already optimized
@@ -84,17 +85,18 @@ void *compute_optimize_for_budget_threaded(void *arg)
                 }
             }
         }
-        free(djikstra_backward_dist);
-        free(djikstra_forward_dist);
     }
+    free(djikstra_backward_dist);
+    free(djikstra_forward_dist);
     return NULL;
 }
 
-void get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_file_name, char *paths_file_name, int nb_thread, selected_edge_t **selected_edges)
+int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_file_name, char *paths_file_name, int nb_thread, selected_edge_t **selected_edges)
 {
     vertex_t **graph;
     path_t **paths;
     edge_t **edge_array;
+    int ret_code;
     (*selected_edges) = NULL;
     long double max_saved_cost;
     uint32_t nb_vertices, nb_edges, nb_paths;
@@ -107,15 +109,34 @@ void get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_
 
     get_graph(graphe_file_name, ";", &graph, &edge_array, &nb_vertices, &nb_edges);
     // fprintf(stderr,"before path\n");
-    get_paths(paths_file_name, ";", &paths, &nb_paths);
-    fprintf(stderr,"start algo\n");
+    ret_code = get_paths(paths_file_name, ";", &paths, &nb_paths);
+    if (ret_code != OK)
+    {
+        return ret_code;
+    }
+    fprintf(stderr, "start algo\n");
     bool *impact = calloc(nb_paths, sizeof(bool));
+    if (impact == NULL)
+    {
+        free_edge(edge_array, nb_edges);
+        free_graph(graph, nb_vertices);
+        free_paths(paths, nb_paths);
+        return MEMORY_ALLOC_ERROR;
+    }
     for (uint32_t i = 0; i < nb_paths; i++)
     {
         impact[i] = true;
     }
 
-    long double *cost_diff_array = calloc(nb_edges,sizeof(long double));
+    long double *cost_diff_array = calloc(nb_edges, sizeof(long double));
+    if (cost_diff_array == NULL)
+    {
+        free(impact);
+        free_edge(edge_array, nb_edges);
+        free_graph(graph, nb_vertices);
+        free_paths(paths, nb_paths);
+        return MEMORY_ALLOC_ERROR;
+    }
     thread_arg_t thread_arg[nb_thread];
     pthread_t threads[nb_thread];
     for (int i = 0; i < nb_thread; i++)
@@ -170,10 +191,12 @@ void get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
         }
     }
+    free(cost_diff_array);
     free(impact);
     free_edge(edge_array, nb_edges);
     free_graph(graph, nb_vertices);
     free_paths(paths, nb_paths);
+    return OK;
 }
 
 /* -------------------------------------------------------------------------- --
@@ -187,15 +210,15 @@ void get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_
 
    --------------------------------------------------------------------------
    Description:
-   This function "improves" an edge, recalculate the paths who have the said 
-   edge within their visibility and compare the new "cost" to the old cost of 
-   the paths. 
-   If the costs is smaller, it is added to the total costs saved by improving 
-   the edge. 
-   If the improvement of the road had a non-null impact the graph is then 
+   This function "improves" an edge, recalculate the paths who have the said
+   edge within their visibility and compare the new "cost" to the old cost of
+   the paths.
+   If the costs is smaller, it is added to the total costs saved by improving
+   the edge.
+   If the improvement of the road had a non-null impact the graph is then
    updated to take in this improvement. The function stops when the budget
    is reached or that no other edges improvement has an impact
-     
+
    --------------------------------------------------------------------------
    Return value:
    void
@@ -206,6 +229,7 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
     vertex_t **graph;
     path_t **paths;
     edge_t **edge_array;
+    int ret_code;
     (*selected_edges) = NULL;
     long double max_saved_cost;
     uint32_t nb_vertices, nb_edges, nb_paths;
@@ -218,7 +242,14 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
 
     get_graph(graphe_file_name, ";", &graph, &edge_array, &nb_vertices, &nb_edges);
     // fprintf(stderr,"Available stack size is %d bytes\n", stackavail());
-    get_paths(paths_file_name, ";", &paths, &nb_paths);
+    ret_code = get_paths(paths_file_name, ";", &paths, &nb_paths);
+    if (ret_code != OK)
+    {
+        return;
+    }
+
+    djikstra_backward_dist = calloc(nb_vertices, sizeof(double));
+    djikstra_forward_dist = calloc(nb_vertices, sizeof(double));
 
     bool impact[nb_paths];
 
@@ -228,7 +259,7 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
     }
 
     long double cost_diff_array[nb_edges];
-    fprintf(stderr,"debut algo \n");
+    fprintf(stderr, "debut algo \n");
     while (!stop)
     {
         // used to know the cost difference, the optimization of the edge would
@@ -252,7 +283,8 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
 
             for (uint32_t edge_id = 0; edge_id < nb_edges; edge_id++)
             {
-                if(edge_array[edge_id]->dist>budget_left){
+                if (edge_array[edge_id]->dist > budget_left)
+                {
                     continue;
                 }
                 //  if the edge's vertexes are in the visibility of the path
@@ -279,8 +311,6 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
             }
 
             // fprintf(stderr, "b free dist\n");
-            free(djikstra_backward_dist);
-            free(djikstra_forward_dist);
             // fprintf(stderr, "freed dist\n");
         }
         edge_id_to_optimize = -1;
@@ -305,6 +335,8 @@ void get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name
         }
     }
     // fprintf(stderr, "??\n");
+    free(djikstra_backward_dist);
+    free(djikstra_forward_dist);
     free_edge(edge_array, nb_edges);
     free_graph(graph, nb_vertices);
     free_paths(paths, nb_paths);
@@ -321,7 +353,7 @@ void init_cost_diff_array(long double *diff_array, unsigned int nb_edges)
 void get_max_edge_to_optimize(long double *diff_array, uint32_t nb_edges, edge_t **edge_array, int *edge_id_to_optimize, long double *saved_cost, long double budget_left)
 {
     long double max_cost_saved = 0;
-   uint32_t max_cost_edge_id;
+    uint32_t max_cost_edge_id;
     // cost_diff_edge_t *temp;
 
     for (uint32_t id_edge = 0; id_edge < nb_edges; id_edge++)
@@ -354,7 +386,7 @@ double updated_dist(edge_t *edge, path_t *path, double *foward_djikstra, double 
 
 double djikstra_forward(struct vertex_t **graph, int V, double **dist_array, int **parent_array, path_t *path)
 {
-    (*dist_array) = (double *)calloc(V,  sizeof(double));
+    // (*dist_array) = (double *)calloc(V,  sizeof(double));
     int *parent;
     bool markedVertex[V];
     bool toVisitVertex[V];
@@ -365,7 +397,7 @@ double djikstra_forward(struct vertex_t **graph, int V, double **dist_array, int
 
     if (parent_array != NULL)
     {
-        (*parent_array) = (int *)calloc(V,sizeof(int));
+        (*parent_array) = (int *)calloc(V, sizeof(int));
         parent = (*parent_array);
     }
     else
@@ -469,7 +501,7 @@ double djikstra_forward(struct vertex_t **graph, int V, double **dist_array, int
 
 double djikstra_backward(struct vertex_t **graph, int V, double **dist_array, int **parent_array, path_t *path)
 {
-    (*dist_array) = (double *)calloc(V , sizeof(double));
+    // (*dist_array) = (double *)calloc(V , sizeof(double));
     bool markedVertex[V];
     bool toVisitVertex[V];
     int dest_vertex_id;
@@ -485,7 +517,7 @@ double djikstra_backward(struct vertex_t **graph, int V, double **dist_array, in
     }
     else
     {
-        parent = (int *)calloc(V,  sizeof(int));
+        parent = (int *)calloc(V, sizeof(int));
     }
 
     origin = path->destination;

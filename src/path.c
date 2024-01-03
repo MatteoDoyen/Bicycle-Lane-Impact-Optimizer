@@ -27,13 +27,14 @@ bool edge_is_in_visibilite(path_t *paths, edge_t *edge)
         // then returns true
         if (paths->visibilite[i] == edge->succ->id)
         {
-            succ_in=true;
+            succ_in = true;
         }
         else if (paths->visibilite[i] == edge->pred->id)
         {
-            pred_in=true;
+            pred_in = true;
         }
-        if(pred_in && succ_in){
+        if (pred_in && succ_in)
+        {
             break;
         }
     }
@@ -60,41 +61,68 @@ bool troncon_is_in_path(path_t *paths, edge_t *edge)
     return false;
 }
 
-void get_paths(char *csv_path, char *csv_delimiter,path_t *** paths_ref, uint32_t *nb_paths)
+int get_paths(char *csv_path, char *csv_delimiter, path_t ***paths_ref, uint32_t *nb_paths)
 {
     uint32_t nb_col, nb_row;
-    uint32_t id_offset; //to ignore the header row of the csv file
+    uint32_t id_offset; // to ignore the header row of the csv file
+    char ***csv_matrix;
+    int ret_code;
 
     // fprintf(stderr,"before alloc\n");
-    char ***csv_matrix = readCSVFile(csv_path, &nb_row, &nb_col, csv_delimiter);
-    *paths_ref = (path_t **)calloc(nb_row,sizeof(path_t *));
+    // char ***csv_matrix = readCSVFile(csv_path, &nb_row, &nb_col, csv_delimiter);
+    ret_code = readCSVFile(csv_path, &csv_matrix, &nb_row, &nb_col, csv_delimiter);
+    if (ret_code != OK)
+    {
+        return ret_code;
+    }
+
+    *paths_ref = (path_t **)calloc(nb_row, sizeof(path_t *));
     path_t **paths = *paths_ref;
     for (uint32_t i = 1; i < nb_row; i++)
     {
-        id_offset = i-1;
-        paths[id_offset] = calloc(1,sizeof(path_t));
+        id_offset = i - 1;
+        paths[id_offset] = calloc(1, sizeof(path_t));
         paths[id_offset]->distance = atof(csv_matrix[i][T_DISTANCE_INDEX]);
         paths[id_offset]->danger = atof(csv_matrix[i][T_DANGER_INDEX]);
-        
+
         paths[id_offset]->profil = atof(csv_matrix[i][T_PROFIL_INDEX]);
         paths[id_offset]->origin = atoi(csv_matrix[i][T_ORIGIN_INDEX]);
         paths[id_offset]->destination = atoi(csv_matrix[i][T_DESTINATION_INDEX]);
         // printf("%s",csv_matrix[i][T_VISIBILITE_INDEX]);
         // break;
-        paths[id_offset]->visibilite = parseJsonIntegerArray(csv_matrix[i][T_VISIBILITE_INDEX], &paths[id_offset]->nb_visibilite);
-        paths[id_offset]->chemin = parseJsonIntegerArray(csv_matrix[i][T_CHEMIN_INDEX], &paths[id_offset]->nb_chemin);
+        // paths[id_offset]->visibilite = parseJsonIntegerArray(csv_matrix[i][T_VISIBILITE_INDEX], &paths[id_offset]->nb_visibilite);
+        ret_code = parseJsonIntegerArray(csv_matrix[i][T_VISIBILITE_INDEX], &paths[id_offset]->visibilite, &paths[id_offset]->nb_visibilite);
+        if (ret_code != OK)
+        {
+            return ret_code;
+        }
+
+        // paths[id_offset]->chemin = parseJsonIntegerArray(csv_matrix[i][T_CHEMIN_INDEX], &paths[id_offset]->nb_chemin);
+        ret_code = parseJsonIntegerArray(csv_matrix[i][T_CHEMIN_INDEX], &paths[id_offset]->chemin, &paths[id_offset]->nb_chemin);
+        if (ret_code != OK)
+        {
+            return ret_code;
+        }
+
         paths[id_offset]->cps_djikstra_danger = atof(csv_matrix[i][T_DANGER_CPS_INDEX]);
         paths[id_offset]->cps_djikstra_dist = atof(csv_matrix[i][T_DIST_CPS_INDEX]);
-        paths[id_offset]->djikstra_sp = parseJsonIntegerArray(csv_matrix[i][T_CPC_INDEX],&paths[id_offset]->nb_djikstra_sp);
+        // paths[id_offset]->djikstra_sp = parseJsonIntegerArray(csv_matrix[i][T_CPC_INDEX],&paths[id_offset]->nb_djikstra_sp);
+        ret_code = parseJsonIntegerArray(csv_matrix[i][T_CPC_INDEX], &paths[id_offset]->djikstra_sp, &paths[id_offset]->nb_djikstra_sp);
+        if (ret_code != OK)
+        {
+            return ret_code;
+        }
         paths[id_offset]->foward_djikstra = NULL;
         paths[id_offset]->backward_djikstra = NULL;
     }
     // fprintf(stderr,"after\n");
     freeCSVMatrix(csv_matrix, nb_row, nb_col);
     *nb_paths = (nb_row - 1);
+    return OK;
 }
 
-void free_paths(path_t** paths,uint32_t nb_paths){
+void free_paths(path_t **paths, uint32_t nb_paths)
+{
 
     for (uint32_t i = 0; i < nb_paths; i++)
     {

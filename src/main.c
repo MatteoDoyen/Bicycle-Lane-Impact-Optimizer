@@ -48,7 +48,7 @@ int main()
     selected_edge_t *selected_edges = NULL;
     clock_gettime(CLOCK_MONOTONIC, &start);
     // get_edges_to_optimize_for_budget_threaded(0.2, GRAPH_FILE_NAME, PATHS_FILE_NAME,8, &selected_edges);
-    get_edges_to_optimize_for_budget(0.2, GRAPH_FILE_NAME, PATHS_FILE_NAME, &selected_edges);
+    get_edges_to_optimize_for_budget_threaded(0.2, GRAPH_FILE_NAME, PATHS_FILE_NAME,12, &selected_edges);
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_time_mono = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
     printf("%f %f\n",0.2,elapsed_time_mono);

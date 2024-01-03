@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "unity.h"
-#include "djikstra.h"
+#include "compute_edges.h"
 #include "util.h"
 
 double calc_path_cps(double dist, double danger, double alpha)
@@ -409,16 +409,16 @@ void test_min_distance(void)
 int main(void)
 {
     UNITY_BEGIN();
-    // RUN_TEST(test_cost_function);
-    // RUN_TEST(test_min_distance);
-    // RUN_TEST(test_djikstra_forward);
-    // RUN_TEST(test_djikstra_forward_vs_backward_path);
-    // RUN_TEST(test_djikstra_forward_vs_backward_cost);
-    // RUN_TEST(test_vertices_in_array_scaling);
-    // RUN_TEST(test_vertices_out_array_scaling);
+    RUN_TEST(test_cost_function);
+    RUN_TEST(test_min_distance);
+    RUN_TEST(test_djikstra_forward);
+    RUN_TEST(test_djikstra_forward_vs_backward_path);
+    RUN_TEST(test_djikstra_forward_vs_backward_cost);
+    RUN_TEST(test_vertices_in_array_scaling);
+    RUN_TEST(test_vertices_out_array_scaling);
     RUN_TEST(test_get_edges_to_optimize_for_budget_thread_vs_single);
-    // RUN_TEST(test_get_edges_to_optimize_for_budget_one_edge);
-    // RUN_TEST(test_get_edges_to_optimize_for_budget_no_edge);
-    // RUN_TEST(test_get_edges_to_optimize_for_budget_multiple_edge);
+    RUN_TEST(test_get_edges_to_optimize_for_budget_one_edge);
+    RUN_TEST(test_get_edges_to_optimize_for_budget_no_edge);
+    RUN_TEST(test_get_edges_to_optimize_for_budget_multiple_edge);
     return UNITY_END();
 }

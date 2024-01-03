@@ -1,6 +1,7 @@
 #include "../header/edge.h"
 #include "../header/path.h"
 #include "../header/djikstra.h"
+#include "../header/compute_edges.h"
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>

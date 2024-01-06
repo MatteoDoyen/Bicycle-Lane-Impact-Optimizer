@@ -45,6 +45,7 @@ int readCSVFile(const char *filename, char ****csv_matrix_ref, uint32_t *numRows
     *csv_matrix_ref = (char ***)calloc(*numRows, sizeof(char **));
     if (*csv_matrix_ref == NULL)
     {
+        fprintf(stderr, "Memory allocation failed\n");
         return MEMORY_ALLOC_ERROR;
     }
     matrix = *csv_matrix_ref;
@@ -58,6 +59,7 @@ int readCSVFile(const char *filename, char ****csv_matrix_ref, uint32_t *numRows
                 free(matrix[x]);
             }
             free(matrix);
+            fprintf(stderr, "Memory allocation failed\n");
             return MEMORY_ALLOC_ERROR;
         }
         for (uint32_t j = 0; j < *numCols; ++j)
@@ -93,6 +95,7 @@ int readCSVFile(const char *filename, char ****csv_matrix_ref, uint32_t *numRows
                 {
                     free(matrix[row][i]);
                 }
+                fprintf(stderr, "Memory allocation failed\n");
                 return MEMORY_ALLOC_ERROR;
             }
             strcpy(matrix[row][col], token);
@@ -125,10 +128,10 @@ void freeCSVMatrix(char ***matrix, int32_t numRows, int32_t numCols)
     free(matrix);
 }
 
-int parseJsonIntegerArray(const char *json,unsigned int **result_array_ref, unsigned int *nb_element)
+int parseJsonIntegerArray(const char *json, unsigned int **result_array_ref, unsigned int *nb_element)
 {
     // fprintf(stderr,"eueueu\n");
-     unsigned int *resultArray;
+    unsigned int *resultArray;
     cJSON *root = cJSON_Parse(json);
     if (!root)
     {
@@ -146,7 +149,9 @@ int parseJsonIntegerArray(const char *json,unsigned int **result_array_ref, unsi
     int arraySize = cJSON_GetArraySize(root);
     *nb_element = arraySize;
     *result_array_ref = (unsigned int *)calloc(arraySize, sizeof(unsigned int));
-    if(*result_array_ref==NULL){
+    if (*result_array_ref == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed\n");
         return MEMORY_ALLOC_ERROR;
     }
     resultArray = *result_array_ref;
@@ -155,6 +160,7 @@ int parseJsonIntegerArray(const char *json,unsigned int **result_array_ref, unsi
     {
         fprintf(stderr, "Memory allocation failed.\n");
         cJSON_Delete(root);
+        fprintf(stderr, "Memory allocation failed\n");
         return MEMORY_ALLOC_ERROR;
     }
 

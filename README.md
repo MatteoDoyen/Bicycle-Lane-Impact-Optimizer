@@ -6,7 +6,7 @@ Given a set budget (maximum distance of roads that can be improved) the executab
 - the ids of the roads to improve
 - the impact each would have if improved
 
-To find wich road should be improved, the solution takes in :
+To find wich roads should be improved, the solution takes in :
 - a graph representing all the different roads and their connexions
 - a list of known paths used by cyclists
 
@@ -26,12 +26,3 @@ Each path has their own alpha (according to the importance each cyclists gives t
 make all
 ./cifre $(budget)
 ```
-
-
-Vocabulaire : 
-- trace : chemin pris par un cycliste
-- vertex  : noeud d'un graph
-- vertices : plusieurs noeuds
-- edge : un arc reliant deux noeuds
-- edges : plusieurs arcs
-- graph : ensemble des noeuds du graph

@@ -87,7 +87,8 @@ void *compute_optimize_for_budget_threaded(void *arg)
                 {
                     // could be improved by creating a mutex for each edge
                     pthread_mutex_lock(thread_arg->mutex);
-                    thread_arg->cost_diff_array[edge_id] += cost_difference;
+                    // thread_arg->cost_diff_array[edge_id] += cost_difference;
+                    new_cost_diff(&thread_arg->cost_diff_array[path_id], edge_id, cost_difference);
                     pthread_mutex_unlock(thread_arg->mutex);
                 }
             }
@@ -137,7 +138,8 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
         fprintf(stderr, "Memory allocation failed for impact array\n");
         return MEMORY_ALLOC_ERROR;
     }
-    long double *cost_diff_array = calloc(nb_edges, sizeof(long double));
+    // long double *cost_diff_array = calloc(nb_edges, sizeof(long double));
+    improved_edge_t **cost_diff_array = calloc(nb_paths, sizeof(improved_edge_t *));
     if (cost_diff_array == NULL)
     {
         free(impact);
@@ -170,11 +172,11 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
         thread_arg[i].budget_left = &budget_left;
     }
 
+    init_cost_diff_array(cost_diff_array, nb_edges);
     while (!stop)
     {
         // used to know the cost difference, the optimization of the edge would
         // bring for the path where the edge is in the visibility
-        init_cost_diff_array(cost_diff_array, nb_edges);
         for (int i = 0; i < nb_thread; i++)
         {
             pthread_create(&threads[i], NULL, compute_optimize_for_budget_threaded, (void *)&thread_arg[i]);
@@ -202,6 +204,7 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
                 }
             }
             ret_code = new_selected_edge(edge_array[edge_id_to_optimize]->id, max_saved_cost, selected_edges);
+            cost_diff_array[edge_id_to_optimize] = -1; // remove the edge's computed costs
             if (ret_code != OK)
             {
                 free(cost_diff_array);
@@ -424,11 +427,27 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
     return OK;
 }
 
-void init_cost_diff_array(long double *diff_array, unsigned int nb_edges)
+int new_cost_diff(improved_edge_t **diff_path_array, uint32_t edge_id, long double cost_difference)
+{
+    improved_edge_t *new_improved_edge = (improved_edge_t *)calloc(1, sizeof(improved_edge_t));
+    if (new_improved_edge == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed\n");
+        return MEMORY_ALLOC_ERROR;
+    }
+
+    new_improved_edge->cost_saved = cost_difference;
+    new_improved_edge->edge_id = edge_id;
+    new_improved_edge->next = *diff_path_array;
+    *diff_path_array = new_improved_edge;
+    return OK;
+}
+
+void init_cost_diff_array(improved_edge_t **diff_array, unsigned int nb_edges)
 {
     for (unsigned int i = 0; i < nb_edges; i++)
     {
-        diff_array[i] = 0;
+        diff_array[i] = NULL;
     }
 }
 

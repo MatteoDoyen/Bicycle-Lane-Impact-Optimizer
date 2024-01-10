@@ -37,8 +37,10 @@ void free_select_edges(selected_edge_t * head);
 int new_selected_edge(unsigned edge_id, long double cost_saved, selected_edge_t **head);
 int get_edges_to_optimize_for_budget(long double budget, char * graphe_file_name, char * paths_file_name,selected_edge_t ** selected_edges);
 int get_edges_to_optimize_for_budget_threaded(long double budget, char * graphe_file_name, char * paths_file_name,int nb_thread,selected_edge_t ** selected_edges);
-void init_cost_diff_array(improved_edge_t **diff_array, unsigned int nbedge_t);
+void init_cost_diff_array(improved_edge_t **diff_array, unsigned int nb_paths);
 int new_cost_diff(improved_edge_t **diff_path_array, uint32_t edge_id, long double cost_difference);
-void get_max_edge_to_optimize(long double *diff_array,uint32_t nb_edges, edge_t **edge_array, int *edge_id_to_optimize,long double * saved_cost,long double budget_left);
+void get_max_edge_to_optimize(improved_edge_t **diff_array,uint32_t nb_paths, uint32_t nb_edges, edge_t **edge_array, int *edge_id_to_optimize, long double *saved_cost, long double budget_left);
+void free_improved_edge_array(improved_edge_t **array, uint32_t nb_paths);
+void free_improved_edge_linked_list(improved_edge_t *head);
 
 #endif // COMPUTE_EDGES_H

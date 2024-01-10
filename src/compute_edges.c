@@ -87,7 +87,6 @@ void *compute_optimize_for_budget_threaded(void *arg)
                 {
                     // could be improved by creating a mutex for each edge
                     pthread_mutex_lock(thread_arg->mutex);
-                    // thread_arg->cost_diff_array[edge_id] += cost_difference;
                     new_cost_diff(&thread_arg->cost_diff_array[path_id], edge_id, cost_difference);
                     pthread_mutex_unlock(thread_arg->mutex);
                 }
@@ -120,7 +119,6 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
     {
         return ret_code;
     }
-    // fprintf(stderr,"before path\n");
     ret_code = get_paths(paths_file_name, ";", &paths, &nb_paths);
     if (ret_code != OK)
     {
@@ -128,7 +126,6 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
         free_graph(graph, nb_vertices);
         return ret_code;
     }
-    // fprintf(stderr, "start algo\n");
     bool *impact = calloc(nb_paths, sizeof(bool));
     if (impact == NULL)
     {
@@ -138,7 +135,6 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
         fprintf(stderr, "Memory allocation failed for impact array\n");
         return MEMORY_ALLOC_ERROR;
     }
-    // long double *cost_diff_array = calloc(nb_edges, sizeof(long double));
     improved_edge_t **cost_diff_array = calloc(nb_paths, sizeof(improved_edge_t *));
     if (cost_diff_array == NULL)
     {
@@ -172,7 +168,7 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
         thread_arg[i].budget_left = &budget_left;
     }
 
-    init_cost_diff_array(cost_diff_array, nb_edges);
+    init_cost_diff_array(cost_diff_array, nb_paths);
     while (!stop)
     {
         // used to know the cost difference, the optimization of the edge would
@@ -188,7 +184,7 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
         }
 
         edge_id_to_optimize = -1;
-        get_max_edge_to_optimize(cost_diff_array, nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, budget_left);
+        get_max_edge_to_optimize(cost_diff_array, nb_paths,nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, budget_left);
         if (edge_id_to_optimize == -1)
         {
             stop = true;
@@ -201,10 +197,11 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
                 if (edge_is_in_visibilite(paths[path_id], edge_array[edge_id_to_optimize]))
                 {
                     impact[path_id] = true;
+                    free_improved_edge_linked_list(cost_diff_array[path_id]);
+                    cost_diff_array[path_id] = NULL;
                 }
             }
             ret_code = new_selected_edge(edge_array[edge_id_to_optimize]->id, max_saved_cost, selected_edges);
-            cost_diff_array[edge_id_to_optimize] = -1; // remove the edge's computed costs
             if (ret_code != OK)
             {
                 free(cost_diff_array);
@@ -219,11 +216,11 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
         }
     }
-    free(cost_diff_array);
     free(impact);
     free_edge(edge_array, nb_edges);
     free_graph(graph, nb_vertices);
     free_paths(paths, nb_paths);
+    free_improved_edge_array(cost_diff_array,nb_paths);
     return OK;
 }
 
@@ -273,7 +270,6 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
     {
         return ret_code;
     }
-    // fprintf(stderr,"Available stack size is %d bytes\n", stackavail());
     ret_code = get_paths(paths_file_name, ";", &paths, &nb_paths);
     if (ret_code != OK)
     {
@@ -319,7 +315,7 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
         impact[i] = true;
     }
 
-    long double *cost_diff_array = calloc(nb_edges, sizeof(long double));
+    improved_edge_t **cost_diff_array = calloc(nb_paths, sizeof(improved_edge_t *));
     if (cost_diff_array == NULL)
     {
         free_edge(edge_array, nb_edges);
@@ -332,11 +328,11 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
         return MEMORY_ALLOC_ERROR;
     }
     fprintf(stderr, "debut algo \n");
+    init_cost_diff_array(cost_diff_array, nb_paths);
     while (!stop)
     {
         // used to know the cost difference, the optimization of the edge would
         // bring for the path where the edge is in the visibility
-        init_cost_diff_array(cost_diff_array, nb_edges);
 
         for (uint32_t path_id = 0; (path_id < nb_paths); path_id++)
         {
@@ -348,10 +344,9 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
             impact[path_id] = false;
 
             //  calculating the djikstra path backward and forward allows for
-            //  a much faster calculating of the impact of the improvement of an edge
+            //  a much faster computing of the impact of the improvement of an edge
             djikstra_cost = djikstra_backward(graph, nb_vertices, &djikstra_backward_dist, NULL, paths[path_id]);
             djikstra_forward(graph, nb_vertices, &djikstra_forward_dist, NULL, paths[path_id]);
-            // fprintf(stderr, "djikstra done\n");
 
             for (uint32_t edge_id = 0; edge_id < nb_edges; edge_id++)
             {
@@ -376,17 +371,14 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
                     cost_difference = djikstra_cost - new_djikstra_cost;
                     if (cost_difference > 0)
                     {
-                        // fprintf(stderr,"meilleur chemin trouvéé\n");
-                        cost_diff_array[edge_id] = cost_difference + cost_diff_array[edge_id];
+                        new_cost_diff(&cost_diff_array[path_id], edge_id, cost_difference);
+
                     }
                 }
             }
-
-            // fprintf(stderr, "b free dist\n");
-            // fprintf(stderr, "freed dist\n");
         }
         edge_id_to_optimize = -1;
-        get_max_edge_to_optimize(cost_diff_array, nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, budget_left);
+        get_max_edge_to_optimize(cost_diff_array, nb_paths,nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, budget_left);
         if (edge_id_to_optimize == -1)
         {
             stop = true;
@@ -398,6 +390,8 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
                 if (edge_is_in_visibilite(paths[path_id], edge_array[edge_id_to_optimize]))
                 {
                     impact[path_id] = true;
+                    free_improved_edge_linked_list(cost_diff_array[path_id]);
+                    cost_diff_array[path_id] = NULL;
                 }
             }
             ret_code = new_selected_edge(edge_array[edge_id_to_optimize]->id, max_saved_cost, selected_edges);
@@ -413,17 +407,16 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
                 return ret_code;
             }
             budget_left = budget_left - edge_array[edge_id_to_optimize]->dist;
-            // fprintf(stderr,"budget restant %Lf\n",budget_left);
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
         }
     }
-    // fprintf(stderr, "??\n");
     free(impact);
     free(djikstra_backward_dist);
     free(djikstra_forward_dist);
     free_edge(edge_array, nb_edges);
     free_graph(graph, nb_vertices);
     free_paths(paths, nb_paths);
+    free_improved_edge_array(cost_diff_array,nb_paths);
     return OK;
 }
 
@@ -443,26 +436,56 @@ int new_cost_diff(improved_edge_t **diff_path_array, uint32_t edge_id, long doub
     return OK;
 }
 
-void init_cost_diff_array(improved_edge_t **diff_array, unsigned int nb_edges)
+void init_cost_diff_array(improved_edge_t **diff_array, unsigned int nb_paths)
 {
-    for (unsigned int i = 0; i < nb_edges; i++)
+    for (unsigned int i = 0; i < nb_paths; i++)
     {
         diff_array[i] = NULL;
     }
 }
 
-void get_max_edge_to_optimize(long double *diff_array, uint32_t nb_edges, edge_t **edge_array, int *edge_id_to_optimize, long double *saved_cost, long double budget_left)
+void free_improved_edge_array(improved_edge_t **array, uint32_t nb_paths){
+    for (size_t path_id = 0; path_id < nb_paths; path_id++)
+    {
+        free_improved_edge_linked_list(array[path_id]);
+    }
+    free(array);
+}
+
+void free_improved_edge_linked_list(improved_edge_t *head){
+    improved_edge_t *current = head;
+    improved_edge_t *next_improved_edge;
+
+    while (current != NULL)
+    {
+        next_improved_edge = current->next;
+        free(current);
+        current = next_improved_edge;
+    }
+}
+
+void get_max_edge_to_optimize(improved_edge_t **diff_array,uint32_t nb_paths, uint32_t nb_edges, edge_t **edge_array, int *edge_id_to_optimize, long double *saved_cost, long double budget_left)
 {
     long double max_cost_saved = 0;
     uint32_t max_cost_edge_id;
-    // cost_diff_edge_t *temp;
+    long double *edge_cost_saved = calloc(nb_edges,sizeof(long double));
+    improved_edge_t * temp;
 
+    for (uint32_t path_id = 0; path_id < nb_paths; path_id++)
+    {
+        temp = diff_array[path_id];
+        while(temp!=NULL){
+            edge_cost_saved[temp->edge_id]+=temp->cost_saved;
+            temp = temp->next;
+        }
+    }
+    
     for (uint32_t id_edge = 0; id_edge < nb_edges; id_edge++)
     {
 
-        if ((edge_array[id_edge]->dist <= (budget_left)) && diff_array[id_edge] > max_cost_saved)
+        if ((edge_array[id_edge]->dist <= (budget_left)) && edge_cost_saved[id_edge] > max_cost_saved)
         {
-            max_cost_saved = diff_array[id_edge];
+            max_cost_saved = edge_cost_saved[id_edge];
             max_cost_edge_id = id_edge;
         }
     }
@@ -471,4 +494,5 @@ void get_max_edge_to_optimize(long double *diff_array, uint32_t nb_edges, edge_t
         *saved_cost = max_cost_saved;
         *edge_id_to_optimize = max_cost_edge_id;
     }
+    free(edge_cost_saved);
 }

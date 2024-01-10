@@ -1,9 +1,0 @@
-- instead of allocating a dist array of nb_vertex size, create a linked list who is limited to the vertex within the visibility
-- create an error struct and send an error code for each function
-- manage memory allocation errors
-- improve the line size needed for the fgets function
-- instead of creating a csv matrix and reading it, just create the paths all at once
-- compute the djikstra_back at the same time than the front
-- if the last optimized edge if not in the visibility of the paths, then don't recompute the djikstra
-    - implies that djikstras back and front are stored for each paths
-- mutualize the thread and non threaded function common code into a single function

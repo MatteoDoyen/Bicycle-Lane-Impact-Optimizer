@@ -3,6 +3,24 @@
 #include "../header/util.h"
 #include "../header/compute_edges.h"
 
+void save_selected_edges(selected_edge_t *head,char * file_path)
+{
+    FILE * file = fopen(file_path,"w");
+    if(file==NULL){
+        fprintf(stderr, "Error opening file: %s\n", file_path);
+        exit(1);
+    }
+    // Write header to the file
+    fprintf(file, "edge_id;saved_cost\n");
+    selected_edge_t *current = head;
+    while (current != NULL)
+    {
+        fprintf(file, "%u;%.4Lf\n", current->edge_id,current->cost_saved);
+        current = current->next;
+    }
+    fclose(file);
+}
+
 void print_selected_edges(selected_edge_t *head)
 {
     selected_edge_t *current = head;
@@ -98,16 +116,16 @@ void *compute_optimize_for_budget_threaded(void *arg)
     return (void *)OK;
 }
 
-int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_file_name, char *paths_file_name, int nb_thread, selected_edge_t **selected_edges)
+int get_edges_to_optimize_for_budget_threaded(long double budget,long double *budget_left, char *graphe_file_name, char *paths_file_name, int nb_thread, selected_edge_t **selected_edges)
 {
     vertex_t **graph;
     path_t **paths;
     edge_t **edge_array;
     int ret_code;
     (*selected_edges) = NULL;
+    *budget_left = budget;
     long double max_saved_cost;
     uint32_t nb_vertices, nb_edges, nb_paths;
-    long double budget_left = budget;
     int32_t edge_id_to_optimize;
     bool stop = false;
     pthread_mutex_t mutex_cost_diff_array;
@@ -165,7 +183,7 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
         thread_arg[i].mutex = &mutex_cost_diff_array;
         thread_arg[i].paths = paths;
         thread_arg[i].impact = impact;
-        thread_arg[i].budget_left = &budget_left;
+        thread_arg[i].budget_left = budget_left;
     }
 
     init_cost_diff_array(cost_diff_array, nb_paths);
@@ -184,7 +202,7 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
         }
 
         edge_id_to_optimize = -1;
-        get_max_edge_to_optimize(cost_diff_array, nb_paths,nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, budget_left);
+        get_max_edge_to_optimize(cost_diff_array, nb_paths,nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, *budget_left);
         if (edge_id_to_optimize == -1)
         {
             stop = true;
@@ -212,7 +230,7 @@ int get_edges_to_optimize_for_budget_threaded(long double budget, char *graphe_f
                 free_select_edges(*selected_edges);
                 return ret_code;
             }
-            budget_left = budget_left - edge_array[edge_id_to_optimize]->dist;
+            *budget_left = *budget_left - edge_array[edge_id_to_optimize]->dist;
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
         }
     }

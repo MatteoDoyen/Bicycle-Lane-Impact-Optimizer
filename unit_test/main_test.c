@@ -25,12 +25,13 @@ void test_get_edges_to_optimize_for_budget_thread_vs_single(void)
     char *graphe_file_name = "./data_test/data_graphe.csv";
     char *paths_file_name = "./data_test/data_path.csv";
     long double budget = 100;
+    long double budget_left;
     selected_edge_t *temp_single, *temp_thread;
     selected_edge_t *selected_edges_single = NULL;
     selected_edge_t *selected_edges_multi = NULL;
 
     get_edges_to_optimize_for_budget(budget, graphe_file_name, paths_file_name, &selected_edges_single);
-    get_edges_to_optimize_for_budget_threaded(budget, graphe_file_name, paths_file_name, 12, &selected_edges_multi);
+    get_edges_to_optimize_for_budget_threaded(budget,&budget_left, graphe_file_name, paths_file_name, 12, &selected_edges_multi);
 
     temp_single = selected_edges_single;
     temp_thread = selected_edges_multi;

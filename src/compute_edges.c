@@ -116,14 +116,14 @@ void *compute_optimize_for_budget_threaded(void *arg)
     return (void *)OK;
 }
 
-int get_edges_to_optimize_for_budget_threaded(cifre_conf_t * config,long double *budget_left, selected_edge_t **selected_edges)
+int get_edges_to_optimize_for_budget_threaded(cifre_conf_t * config,long double *budget_used, selected_edge_t **selected_edges)
 {
     vertex_t **graph;
     path_t **paths;
     edge_t **edge_array;
     int ret_code;
     (*selected_edges) = NULL;
-    *budget_left = config->budget;
+    long double budget_left=config->budget;
     long double max_saved_cost;
     uint32_t nb_vertices, nb_edges, nb_paths;
     int32_t edge_id_to_optimize;
@@ -183,7 +183,7 @@ int get_edges_to_optimize_for_budget_threaded(cifre_conf_t * config,long double 
         thread_arg[i].mutex = &mutex_cost_diff_array;
         thread_arg[i].paths = paths;
         thread_arg[i].impact = impact;
-        thread_arg[i].budget_left = budget_left;
+        thread_arg[i].budget_left = &budget_left;
     }
 
     init_cost_diff_array(cost_diff_array, nb_paths);
@@ -202,7 +202,7 @@ int get_edges_to_optimize_for_budget_threaded(cifre_conf_t * config,long double 
         }
 
         edge_id_to_optimize = -1;
-        get_max_edge_to_optimize(cost_diff_array, nb_paths,nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, *budget_left);
+        get_max_edge_to_optimize(cost_diff_array, nb_paths,nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, budget_left);
         if (edge_id_to_optimize == -1)
         {
             stop = true;
@@ -230,7 +230,8 @@ int get_edges_to_optimize_for_budget_threaded(cifre_conf_t * config,long double 
                 free_select_edges(*selected_edges);
                 return ret_code;
             }
-            *budget_left = *budget_left - edge_array[edge_id_to_optimize]->dist;
+            budget_left = budget_left - edge_array[edge_id_to_optimize]->dist;
+            *budget_used = config->budget - budget_left;
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
         }
     }

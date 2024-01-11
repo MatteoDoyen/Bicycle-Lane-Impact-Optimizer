@@ -21,12 +21,13 @@ typedef struct {
 typedef struct{
     char * paths_file_path;
     char * graph_file_path;
-    double budget;
+    char * csv_delimiter;
+    long double budget;
     uint32_t thread_number;
     path_indexes_t path_indexes;
 }cifre_conf_t;
 
-int get_double_in_json(cJSON *json_object, char *item_key, double *value);
+int get_double_in_json(cJSON *json_object, char *item_key,long double *value);
 int get_uint_in_json(cJSON *json_object, char *item_key, uint32_t *value);
 int get_string_in_json(cJSON *json_object, char *item_key, char **value);
 int set_config(char const *config_file_path,cifre_conf_t *conf_ref);

@@ -47,6 +47,7 @@ int set_config(char const *config_file_path,cifre_conf_t *conf_ref)
 
     get_string_in_json(json, "paths_file_path", &(*conf_ref).paths_file_path);
     get_string_in_json(json, "graph_file_path", &(*conf_ref).graph_file_path);
+    get_string_in_json(json, "csv_delimiter", &(*conf_ref).csv_delimiter);
     get_double_in_json(json, "budget", &(*conf_ref).budget);
     get_uint_in_json(json, "thread_number", &(*conf_ref).thread_number);
     cJSON_Delete(json);
@@ -67,7 +68,7 @@ int get_string_in_json(cJSON *json_object, char *item_key, char **value)
     return 0;
 }
 
-int get_double_in_json(cJSON *json_object, char *item_key, double *value)
+int get_double_in_json(cJSON *json_object, char *item_key, long double *value)
 {
     cJSON *current_item = cJSON_GetObjectItem(json_object, item_key);
     if (current_item == NULL || !cJSON_IsNumber(current_item))

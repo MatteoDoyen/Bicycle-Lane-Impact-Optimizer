@@ -1,0 +1,18 @@
+{
+    "path_column_indexes" : {
+        "origin" : 1,
+        "destination" : 2,
+        "profile" : 3,
+        "distance" : 4,
+        "danger" : 5,
+        "original_path" : 6,
+        "shortest_path" : 10,
+        "distance_shortest_path" : 11,
+        "danger_shortest_path" : 12,
+        "visibility" : 13
+    },
+    "paths_file_path":"./data/artificiel/data_path.csv",
+    "graph_file_path":"./data/artificiel/data_graphe.csv",
+    "budget" : 100,
+    "thread_number": 12
+}

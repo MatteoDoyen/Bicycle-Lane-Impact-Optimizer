@@ -11,8 +11,9 @@
         "danger_shortest_path" : 12,
         "visibility" : 13
     },
-    "paths_file_path":"./data/artificiel/data_path.csv",
-    "graph_file_path":"./data/artificiel/data_graphe.csv",
+    "paths_file_path":"./data_test/data_path_reduced.csv",
+    "graph_file_path":"./data_test/data_graphe_reduced.csv",
+    "csv_delimiter":";",
     "budget" : 100,
     "thread_number": 12
 }

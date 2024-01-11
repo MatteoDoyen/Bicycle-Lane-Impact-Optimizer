@@ -1,8 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "unity.h"
+#include "config.h"
 #include "compute_edges.h"
 #include "util.h"
+
+#define CONFIG_FILE_PATH "./conf_test/conf_unit_test.json"
+#define CONFIG_REDUCED_FILE_PATH "./conf_test/conf_unit_test_reduced.json"
 
 double calc_path_cps(double dist, double danger, double alpha)
 {
@@ -22,16 +26,15 @@ void tearDown(void)
 
 void test_get_edges_to_optimize_for_budget_thread_vs_single(void)
 {
-    char *graphe_file_name = "./data_test/data_graphe.csv";
-    char *paths_file_name = "./data_test/data_path.csv";
-    long double budget = 100;
     long double budget_left;
+    cifre_conf_t config;
+    set_config(CONFIG_FILE_PATH,&config);
     selected_edge_t *temp_single, *temp_thread;
     selected_edge_t *selected_edges_single = NULL;
     selected_edge_t *selected_edges_multi = NULL;
 
-    get_edges_to_optimize_for_budget(budget, graphe_file_name, paths_file_name, &selected_edges_single);
-    get_edges_to_optimize_for_budget_threaded(budget,&budget_left, graphe_file_name, paths_file_name, 12, &selected_edges_multi);
+    get_edges_to_optimize_for_budget(&config,&budget_left,&selected_edges_single);
+    get_edges_to_optimize_for_budget_threaded(&config,&budget_left, &selected_edges_multi);
 
     temp_single = selected_edges_single;
     temp_thread = selected_edges_multi;
@@ -50,13 +53,15 @@ void test_get_edges_to_optimize_for_budget_thread_vs_single(void)
 
 void test_get_edges_to_optimize_for_budget_no_edge(void)
 {
-    char *graphe_file_name = "./data_test/data_graphe_reduced.csv";
-    char *paths_file_name = "./data_test/data_path_reduced.csv";
-    long double budget = 0.49; // lowest dist to optimize is 0.5
+
+    cifre_conf_t config;
+    set_config(CONFIG_REDUCED_FILE_PATH,&config);
+    config.budget = 0.49;
+    long double budget_left; // lowest dist to optimize is 0.5
     int taille = 0;
     selected_edge_t *selected_edges;
 
-    get_edges_to_optimize_for_budget(budget, graphe_file_name, paths_file_name, &selected_edges);
+    get_edges_to_optimize_for_budget(&config,&budget_left,&selected_edges);
 
     selected_edge_t *temp = selected_edges;
     while (temp != NULL)
@@ -70,15 +75,16 @@ void test_get_edges_to_optimize_for_budget_no_edge(void)
 
 void test_get_edges_to_optimize_for_budget_multiple_edge(void)
 {
-    char *graphe_file_name = "./data_test/data_graphe_reduced.csv";
-    char *paths_file_name = "./data_test/data_path_reduced.csv";
-    long double budget = 1.3;
+    cifre_conf_t config;
+    set_config(CONFIG_REDUCED_FILE_PATH,&config);
+    config.budget =  1.3;
+    long double budget_left;
     long double expexted_cost_saved[2] = {0.1, 1.1};
     long double expexted_id[2] = {6, 2};
     int taille = 0;
     selected_edge_t *selected_edges;
 
-    get_edges_to_optimize_for_budget(budget, graphe_file_name, paths_file_name, &selected_edges);
+    get_edges_to_optimize_for_budget(&config,&budget_left, &selected_edges);
 
     selected_edge_t *temp = selected_edges;
     while (temp != NULL)
@@ -103,13 +109,14 @@ void test_get_edges_to_optimize_for_budget_multiple_edge(void)
  * ***/
 void test_get_edges_to_optimize_for_budget_one_edge(void)
 {
-    char *graphe_file_name = "./data_test/data_graphe_reduced.csv";
-    char *paths_file_name = "./data_test/data_path_reduced.csv";
-    long double budget = 0.5;
+    cifre_conf_t config;
+    set_config(CONFIG_REDUCED_FILE_PATH,&config);
+    config.budget =  0.5;
+    long double buget_left;
     int taille = 0;
     selected_edge_t *selected_edges = NULL;
 
-    get_edges_to_optimize_for_budget(budget, graphe_file_name, paths_file_name, &selected_edges);
+    get_edges_to_optimize_for_budget(&config,&buget_left, &selected_edges);
 
     selected_edge_t *temp = selected_edges;
     while (temp != NULL)
@@ -123,9 +130,6 @@ void test_get_edges_to_optimize_for_budget_one_edge(void)
     free_select_edges(selected_edges);
 }
 
-void test_updated_dist(void)
-{
-}
 
 void test_vertices_out_array_scaling(void)
 {
@@ -222,6 +226,8 @@ void test_djikstra_forward_vs_backward_path(void)
     vertex_t **graph;
     edge_t **edge_array;
     path_t **paths;
+    cifre_conf_t config;
+    set_config(CONFIG_FILE_PATH,&config);
     uint32_t nb_vertices, nb_paths, nb_edges;
     int ret_code;
     double cost;
@@ -230,8 +236,8 @@ void test_djikstra_forward_vs_backward_path(void)
     int *parent_array_forward, *parent_array_backward;
     int current,old_current;
 
-    get_graph("./data_test/data_graphe.csv", ";", &graph, &edge_array, &nb_vertices, &nb_edges);
-    ret_code = get_paths("./data_test/data_path.csv", ";", &paths, &nb_paths);
+    get_graph(&config, &graph, &edge_array, &nb_vertices, &nb_edges);
+    ret_code = get_paths(&config, &paths, &nb_paths);
     if (ret_code != OK)
     {
         return;
@@ -278,6 +284,8 @@ void test_djikstra_forward_vs_backward_cost(void)
     vertex_t **graph;
     edge_t **edge_array;
     path_t **paths;
+    cifre_conf_t config;
+    set_config(CONFIG_FILE_PATH,&config);
     int ret_code;
     uint32_t nb_vertices, nb_edges, nb_paths;
     double *dist_array_forward, *dist_array_backward;
@@ -285,8 +293,8 @@ void test_djikstra_forward_vs_backward_cost(void)
     double cost_forward, cost_backward;
     // char str[80];
 
-    get_graph("./data_test/data_graphe.csv", ";", &graph, &edge_array, &nb_vertices, &nb_edges);
-    ret_code = get_paths("./data_test/data_path.csv", ";", &paths, &nb_paths);
+    get_graph(&config, &graph, &edge_array, &nb_vertices, &nb_edges);
+    ret_code = get_paths(&config, &paths, &nb_paths);
     if (ret_code != OK)
     {
         return;
@@ -320,14 +328,16 @@ void test_djikstra_forward(void)
     vertex_t **graph;
     edge_t **edge_array;
     path_t **paths;
+    cifre_conf_t config;
+    set_config(CONFIG_FILE_PATH,&config);
     int ret_code;
     uint32_t nb_vertices, nb_edges, nb_paths;
     double *dist_array;
     double cost, expected_cost;
     // char str[80];
 
-    get_graph("./data_test/data_graphe.csv", ";", &graph, &edge_array, &nb_vertices, &nb_edges);
-    ret_code = get_paths("./data_test/data_path.csv", ";", &paths, &nb_paths);
+    get_graph(&config, &graph, &edge_array, &nb_vertices, &nb_edges);
+    ret_code = get_paths(&config, &paths, &nb_paths);
     if (ret_code != OK)
     {
         return;

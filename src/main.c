@@ -2,64 +2,41 @@
 #include "../header/path.h"
 #include "../header/djikstra.h"
 #include "../header/compute_edges.h"
+#include "../header/display_progress.h"
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
 
 #define BUDGET 150
-// #define PATHS_FILE_NAME "./data_path.csv"
-// #define GRAPH_FILE_NAME "./data_graphe.csv"
-#define PATHS_FILE_NAME "./data/artificiel/data_path.csv"
-#define GRAPH_FILE_NAME "./data/artificiel/data_graphe.csv"
+#define DATA_DIRECTORY  "./data/artificiel"
+#define PATHS_FILE_NAME DATA_DIRECTORY"/data_path.csv"
+#define GRAPH_FILE_NAME DATA_DIRECTORY"/data_graphe.csv"
+#define RESULT_DIRECTORY "./results"
+#define RESULT_FILE_NAME RESULT_DIRECTORY"/edges_to_improve_"
 
 int main()
 {
-    struct timespec start, end;
-    double elapsed_time_mono;
-    double elapsed_time_thread;
+    long double budget_left;
+    long double budget = 10;
+    pthread_t progressBar;
+    print_progress_args_t print_progress_args;
+    char result_file_name[200];
+    snprintf(result_file_name, sizeof(result_file_name),"%s%.2Lf.csv",RESULT_FILE_NAME,budget);
 
-    // for (int i = 13; i <= 20; i++)
-    // {
-    //     selected_edge_t * selected_edges=NULL;
-    //     clock_gettime(CLOCK_MONOTONIC, &start);
-    //     get_edges_to_optimize_for_budget_threaded(400,GRAPH_FILE_NAME,PATHS_FILE_NAME,i,&selected_edges);
-    //     clock_gettime(CLOCK_MONOTONIC, &end);
-    //     free_select_edges(selected_edges);
-    //     elapsed_time_thread = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
-    //     printf("%i %f\n",budget,elapsed_time_thread);
-    // }
+    print_progress_args.total_budget = budget;
+    print_progress_args.budget_left = &budget_left;
 
-    // for (int i = 100; i <= 400; i+=100)
-    // {
-    //     int budget = i == 400 ? 414 : i;
-    //     selected_edge_t * selected_edges=NULL;
-    //     // printf("budget : %d\n",i);
-    //     // clock_gettime(CLOCK_MONOTONIC, &start);
-    //     // get_edges_to_optimize_for_budget(budget,GRAPH_FILE_NAME,PATHS_FILE_NAME,&selected_edges);
-    //     // clock_gettime(CLOCK_MONOTONIC, &end);
-    //     // free_select_edges(selected_edges);
-    //     // elapsed_time_mono = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
-    //     clock_gettime(CLOCK_MONOTONIC, &start);
-    //     get_edges_to_optimize_for_budget_threaded(budget,GRAPH_FILE_NAME,PATHS_FILE_NAME,12,&selected_edges);
-    //     clock_gettime(CLOCK_MONOTONIC, &end);
-    //     free_select_edges(selected_edges);
-    //     elapsed_time_thread = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
-    //     // printf("%i %f %f\n",budget,elapsed_time_thread,elapsed_time_mono);
-    //     printf("%i %f\n",budget,elapsed_time_thread);
-    // }
-    
+    int rc = pthread_create(&progressBar, NULL, progressBarThread, &print_progress_args);
+    if (rc) {
+        printf("Error creating progress bar thread: %d\n", rc);
+        return -1;
+    }
     selected_edge_t *selected_edges = NULL;
-    clock_gettime(CLOCK_MONOTONIC, &start);
-    // get_edges_to_optimize_for_budget_threaded(0.2, GRAPH_FILE_NAME, PATHS_FILE_NAME,8, &selected_edges);
-    get_edges_to_optimize_for_budget_threaded(20, GRAPH_FILE_NAME, PATHS_FILE_NAME,12, &selected_edges);
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    elapsed_time_mono = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
-    // printf("20 %f\n",elapsed_time_mono);
-    print_selected_edges(selected_edges);
+    get_edges_to_optimize_for_budget_threaded(budget,&budget_left, GRAPH_FILE_NAME, PATHS_FILE_NAME,12, &selected_edges);
+    budget_left = budget;
+    pthread_join(progressBar, NULL);
+    save_selected_edges(selected_edges,result_file_name);
     free_select_edges(selected_edges);
-
-    // Print the result
-    // printf("Time taken by myThreadedFunction: %f seconds\n", elapsed_time);
 
     return 0;
 }

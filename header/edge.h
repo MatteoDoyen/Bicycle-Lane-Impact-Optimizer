@@ -1,5 +1,6 @@
 #ifndef EDGE_H
 #define EDGE_H
+#include "../header/config.h"
 #include <stdbool.h>
 #include <stdint.h>
 // Forward declaration of edge_t struct
@@ -38,7 +39,7 @@ typedef struct edge_t {
 
 uint32_t get_nb_node(char*** csv_matrix, uint32_t nb_row);
 int create_edge(uint32_t id,edge_t **new_edge_ref, double dist, double danger, vertex_t *pred, vertex_t *succ);
-int get_graph(const char *filename,char * separator, vertex_t ***graph_ref, edge_t*** edge_array, uint32_t *num_vertices, uint32_t *nb_edges);
+int get_graph(cifre_conf_t *config, vertex_t ***graph_ref, edge_t*** edge_array, uint32_t *num_vertices, uint32_t *nb_edges);
 void free_graph(vertex_t **graph,int num_vertices);
 void free_edge(edge_t **edge_array,int nb_edges);
 

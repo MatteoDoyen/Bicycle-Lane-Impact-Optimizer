@@ -2,6 +2,8 @@
 #define PATH_H
 
 #include "../header/edge.h"
+#include "../header/config.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <string.h>
@@ -54,7 +56,7 @@ typedef struct
     double *backward_djikstra;
 } path_t;
 
-int get_paths(char *csv_path, char *csv_delimiter,path_t ***paths, uint32_t *nb_paths);
+int get_paths(cifre_conf_t *conf, path_t ***paths, uint32_t *nb_paths);
 bool edge_is_in_visibilite(path_t *paths, edge_t *edge);
 bool troncon_is_in_path(path_t *paths, edge_t *edge);
 bool vertex_is_in_visibilite(path_t *paths, uint32_t vertex_id);

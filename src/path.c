@@ -61,7 +61,7 @@ bool troncon_is_in_path(path_t *paths, edge_t *edge)
     return false;
 }
 
-int get_paths(char *csv_path, char *csv_delimiter, path_t ***paths_ref, uint32_t *nb_paths)
+int get_paths(cifre_conf_t *conf,path_t ***paths_ref, uint32_t *nb_paths)
 {
     uint32_t nb_col, nb_row;
     uint32_t id_offset; // to ignore the header row of the csv file
@@ -70,7 +70,7 @@ int get_paths(char *csv_path, char *csv_delimiter, path_t ***paths_ref, uint32_t
 
     // fprintf(stderr,"before alloc\n");
     // char ***csv_matrix = readCSVFile(csv_path, &nb_row, &nb_col, csv_delimiter);
-    ret_code = readCSVFile(csv_path, &csv_matrix, &nb_row, &nb_col, csv_delimiter);
+    ret_code = readCSVFile(conf->paths_file_path, &csv_matrix, &nb_row, &nb_col, conf->csv_delimiter);
     if (ret_code != OK)
     {
         return ret_code;
@@ -82,32 +82,32 @@ int get_paths(char *csv_path, char *csv_delimiter, path_t ***paths_ref, uint32_t
     {
         id_offset = i - 1;
         paths[id_offset] = calloc(1, sizeof(path_t));
-        paths[id_offset]->distance = atof(csv_matrix[i][T_DISTANCE_INDEX]);
-        paths[id_offset]->danger = atof(csv_matrix[i][T_DANGER_INDEX]);
+        paths[id_offset]->distance = atof(csv_matrix[i][conf->path_indexes.distance]);
+        paths[id_offset]->danger = atof(csv_matrix[i][conf->path_indexes.danger]);
 
-        paths[id_offset]->profil = atof(csv_matrix[i][T_PROFIL_INDEX]);
-        paths[id_offset]->origin = atoi(csv_matrix[i][T_ORIGIN_INDEX]);
-        paths[id_offset]->destination = atoi(csv_matrix[i][T_DESTINATION_INDEX]);
+        paths[id_offset]->profil = atof(csv_matrix[i][conf->path_indexes.profile]);
+        paths[id_offset]->origin = atoi(csv_matrix[i][conf->path_indexes.origin]);
+        paths[id_offset]->destination = atoi(csv_matrix[i][conf->path_indexes.destination]);
         // printf("%s",csv_matrix[i][T_VISIBILITE_INDEX]);
         // break;
         // paths[id_offset]->visibilite = parseJsonIntegerArray(csv_matrix[i][T_VISIBILITE_INDEX], &paths[id_offset]->nb_visibilite);
-        ret_code = parseJsonIntegerArray(csv_matrix[i][T_VISIBILITE_INDEX], &paths[id_offset]->visibilite, &paths[id_offset]->nb_visibilite);
+        ret_code = parseJsonIntegerArray(csv_matrix[i][conf->path_indexes.visibility], &paths[id_offset]->visibilite, &paths[id_offset]->nb_visibilite);
         if (ret_code != OK)
         {
             return ret_code;
         }
 
         // paths[id_offset]->chemin = parseJsonIntegerArray(csv_matrix[i][T_CHEMIN_INDEX], &paths[id_offset]->nb_chemin);
-        ret_code = parseJsonIntegerArray(csv_matrix[i][T_CHEMIN_INDEX], &paths[id_offset]->chemin, &paths[id_offset]->nb_chemin);
+        ret_code = parseJsonIntegerArray(csv_matrix[i][conf->path_indexes.original_path], &paths[id_offset]->chemin, &paths[id_offset]->nb_chemin);
         if (ret_code != OK)
         {
             return ret_code;
         }
 
-        paths[id_offset]->cps_djikstra_danger = atof(csv_matrix[i][T_DANGER_CPS_INDEX]);
-        paths[id_offset]->cps_djikstra_dist = atof(csv_matrix[i][T_DIST_CPS_INDEX]);
+        paths[id_offset]->cps_djikstra_danger = atof(csv_matrix[i][conf->path_indexes.danger_shortest_path]);
+        paths[id_offset]->cps_djikstra_dist = atof(csv_matrix[i][conf->path_indexes.distance_shortest_path]);
         // paths[id_offset]->djikstra_sp = parseJsonIntegerArray(csv_matrix[i][T_CPC_INDEX],&paths[id_offset]->nb_djikstra_sp);
-        ret_code = parseJsonIntegerArray(csv_matrix[i][T_CPC_INDEX], &paths[id_offset]->djikstra_sp, &paths[id_offset]->nb_djikstra_sp);
+        ret_code = parseJsonIntegerArray(csv_matrix[i][conf->path_indexes.shortest_path], &paths[id_offset]->djikstra_sp, &paths[id_offset]->nb_djikstra_sp);
         if (ret_code != OK)
         {
             return ret_code;

@@ -116,14 +116,14 @@ void *compute_optimize_for_budget_threaded(void *arg)
     return (void *)OK;
 }
 
-int get_edges_to_optimize_for_budget_threaded(long double budget,long double *budget_left, char *graphe_file_name, char *paths_file_name, int nb_thread, selected_edge_t **selected_edges)
+int get_edges_to_optimize_for_budget_threaded(cifre_conf_t * config,long double *budget_left, selected_edge_t **selected_edges)
 {
     vertex_t **graph;
     path_t **paths;
     edge_t **edge_array;
     int ret_code;
     (*selected_edges) = NULL;
-    *budget_left = budget;
+    *budget_left = config->budget;
     long double max_saved_cost;
     uint32_t nb_vertices, nb_edges, nb_paths;
     int32_t edge_id_to_optimize;
@@ -132,12 +132,12 @@ int get_edges_to_optimize_for_budget_threaded(long double budget,long double *bu
 
     pthread_mutex_init(&mutex_cost_diff_array, NULL);
 
-    ret_code = get_graph(graphe_file_name, ";", &graph, &edge_array, &nb_vertices, &nb_edges);
+    ret_code = get_graph(config, &graph, &edge_array, &nb_vertices, &nb_edges);
     if (ret_code != OK)
     {
         return ret_code;
     }
-    ret_code = get_paths(paths_file_name, ";", &paths, &nb_paths);
+    ret_code = get_paths(config, &paths, &nb_paths);
     if (ret_code != OK)
     {
         free_edge(edge_array, nb_edges);
@@ -168,9 +168,9 @@ int get_edges_to_optimize_for_budget_threaded(long double budget,long double *bu
     {
         impact[i] = true;
     }
-    thread_arg_t thread_arg[nb_thread];
-    pthread_t threads[nb_thread];
-    for (int i = 0; i < nb_thread; i++)
+    thread_arg_t thread_arg[config->thread_number];
+    pthread_t threads[config->thread_number];
+    for (uint32_t i= 0; i < config->thread_number; i++)
     {
         thread_arg[i].cost_diff_array = cost_diff_array;
         thread_arg[i].edge_array = edge_array;
@@ -179,7 +179,7 @@ int get_edges_to_optimize_for_budget_threaded(long double budget,long double *bu
         thread_arg[i].nb_vertices = nb_vertices;
         thread_arg[i].nb_paths = nb_paths;
         thread_arg[i].thread_id = i;
-        thread_arg[i].offset = nb_thread;
+        thread_arg[i].offset = config->thread_number;
         thread_arg[i].mutex = &mutex_cost_diff_array;
         thread_arg[i].paths = paths;
         thread_arg[i].impact = impact;
@@ -191,11 +191,11 @@ int get_edges_to_optimize_for_budget_threaded(long double budget,long double *bu
     {
         // used to know the cost difference, the optimization of the edge would
         // bring for the path where the edge is in the visibility
-        for (int i = 0; i < nb_thread; i++)
+        for (uint32_t i= 0; i < config->thread_number; i++)
         {
             pthread_create(&threads[i], NULL, compute_optimize_for_budget_threaded, (void *)&thread_arg[i]);
         }
-        for (int i = 0; i < nb_thread; i++)
+        for (uint32_t i= 0; i < config->thread_number; i++)
         {
             // wait thread
             pthread_join(threads[i], NULL);
@@ -267,7 +267,7 @@ int get_edges_to_optimize_for_budget_threaded(long double budget,long double *bu
    void
 
 -- -------------------------------------------------------------------------- */
-int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name, char *paths_file_name, selected_edge_t **selected_edges)
+int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_left, selected_edge_t **selected_edges)
 {
     vertex_t **graph;
     path_t **paths;
@@ -276,19 +276,19 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
     (*selected_edges) = NULL;
     long double max_saved_cost;
     uint32_t nb_vertices, nb_edges, nb_paths;
-    long double budget_left = budget;
+    *budget_left = config->budget;
     int32_t edge_id_to_optimize;
     long double old_danger;
     double *djikstra_backward_dist, *djikstra_forward_dist;
     long double new_djikstra_cost, djikstra_cost, cost_difference;
     bool stop = false;
 
-    ret_code = get_graph(graphe_file_name, ";", &graph, &edge_array, &nb_vertices, &nb_edges);
+    ret_code = get_graph(config, &graph, &edge_array, &nb_vertices, &nb_edges);
     if (ret_code != OK)
     {
         return ret_code;
     }
-    ret_code = get_paths(paths_file_name, ";", &paths, &nb_paths);
+    ret_code = get_paths(config, &paths, &nb_paths);
     if (ret_code != OK)
     {
         free_edge(edge_array, nb_edges);
@@ -345,7 +345,6 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
         fprintf(stderr, "Memory allocation failed for cost_diff_array array\n");
         return MEMORY_ALLOC_ERROR;
     }
-    fprintf(stderr, "debut algo \n");
     init_cost_diff_array(cost_diff_array, nb_paths);
     while (!stop)
     {
@@ -368,7 +367,7 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
 
             for (uint32_t edge_id = 0; edge_id < nb_edges; edge_id++)
             {
-                if (edge_array[edge_id]->dist > budget_left)
+                if (edge_array[edge_id]->dist > *budget_left)
                 {
                     continue;
                 }
@@ -396,7 +395,7 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
             }
         }
         edge_id_to_optimize = -1;
-        get_max_edge_to_optimize(cost_diff_array, nb_paths,nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, budget_left);
+        get_max_edge_to_optimize(cost_diff_array, nb_paths,nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, *budget_left);
         if (edge_id_to_optimize == -1)
         {
             stop = true;
@@ -424,7 +423,7 @@ int get_edges_to_optimize_for_budget(long double budget, char *graphe_file_name,
                 free_select_edges(*selected_edges);
                 return ret_code;
             }
-            budget_left = budget_left - edge_array[edge_id_to_optimize]->dist;
+            *budget_left = *budget_left - edge_array[edge_id_to_optimize]->dist;
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
         }
     }

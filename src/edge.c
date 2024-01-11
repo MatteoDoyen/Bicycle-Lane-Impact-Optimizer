@@ -65,14 +65,14 @@ int create_edge(uint32_t id, edge_t **new_edge_ref, double dist, double danger, 
 }
 
 // Function to read CSV file and create graph
-int get_graph(const char *filename, char *separator, vertex_t ***graph_ref, edge_t ***edge_array, uint32_t *num_vertices, uint32_t *nb_edges)
+int get_graph(cifre_conf_t * config,vertex_t ***graph_ref, edge_t ***edge_array, uint32_t *num_vertices, uint32_t *nb_edges)
 {
     unsigned int node_i, node_j;
     uint32_t nb_col, nb_row;
     char ***csv_matrix;
     int ret_code;
     // char ***csv_matrix = readCSVFile(filename, &nb_row, &nb_col, separator);
-    ret_code = readCSVFile(filename, &csv_matrix, &nb_row, &nb_col, separator);
+    ret_code = readCSVFile(config->graph_file_path, &csv_matrix, &nb_row, &nb_col, config->csv_delimiter);
     if (ret_code != OK)
     {
         return ret_code;

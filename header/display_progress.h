@@ -9,6 +9,6 @@ typedef struct {
 }print_progress_args_t;
 
 void* progressBarThread(void* arg);
-void printProgressBar(int progress, int total);
+void printProgressBar(double progress, double total);
 
 #endif // DISPLAY_PROGRESS_H

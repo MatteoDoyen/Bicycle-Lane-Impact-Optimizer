@@ -14,7 +14,7 @@ void* progressBarThread(void* arg) {
         if (currentProgress != lastProgress) {
             // printf("la ?\n");
             lastProgress = currentProgress;
-            printProgressBar(print_args->total_budget-currentProgress, print_args->total_budget);
+            printProgressBar(currentProgress, print_args->total_budget);
         }
 
         // Check if the worker thread has completed
@@ -27,9 +27,9 @@ void* progressBarThread(void* arg) {
     pthread_exit(NULL);
 }
 
-void printProgressBar(int progress, int total) {
+void printProgressBar(double progress, double total) {
     const int barWidth = 50;
-    float percentage = (float)progress / total;
+    double percentage = (double)(progress / total);
     int barLength = barWidth * percentage;
 
     printf("\033[1;32m[");
@@ -41,6 +41,6 @@ void printProgressBar(int progress, int total) {
         }
     }
 
-    printf("] %3.0f%%\033[0m\r", percentage * 100);
+    printf("] budget used : %3.2f%%\033[0m\r", percentage * 100);
     fflush(stdout);
 }

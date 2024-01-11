@@ -27,6 +27,7 @@ typedef struct{
     path_indexes_t path_indexes;
 }cifre_conf_t;
 
+void free_config(cifre_conf_t *config);
 int get_double_in_json(cJSON *json_object, char *item_key,long double *value);
 int get_uint_in_json(cJSON *json_object, char *item_key, uint32_t *value);
 int get_string_in_json(cJSON *json_object, char *item_key, char **value);

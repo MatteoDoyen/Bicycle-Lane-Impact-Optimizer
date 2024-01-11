@@ -1,6 +1,7 @@
 #include "../header/config.h"
 #include "../header/util.h"
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 int set_config(char const *config_file_path,cifre_conf_t *conf_ref)
@@ -50,9 +51,16 @@ int set_config(char const *config_file_path,cifre_conf_t *conf_ref)
     get_string_in_json(json, "csv_delimiter", &(*conf_ref).csv_delimiter);
     get_double_in_json(json, "budget", &(*conf_ref).budget);
     get_uint_in_json(json, "thread_number", &(*conf_ref).thread_number);
+
     cJSON_Delete(json);
 
     return OK;
+}
+
+void free_config(cifre_conf_t *config){
+    free(config->paths_file_path);
+    free(config->graph_file_path);
+    free(config->csv_delimiter);
 }
 
 int get_string_in_json(cJSON *json_object, char *item_key, char **value)

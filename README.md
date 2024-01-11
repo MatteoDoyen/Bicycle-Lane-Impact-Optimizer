@@ -24,5 +24,5 @@ Each path has their own alpha (according to the importance each cyclists gives t
 # Compile and start
 ```sh
 make all
-./cifre $(budget)
+./cifre $(conf_file)
 ```

@@ -253,7 +253,6 @@ void test_djikstra_forward_vs_backward_path(void)
     for (uint32_t i = 0; i < nb_paths; i++)
     {
         cost = djikstra_forward(graph, nb_vertices, &dist_array_forward, &parent_array_forward, paths[i]);
-        // dijistkra_test(dist_array_forward, &dist_array_backward,parent_array_forward,&parent_array_backward,paths[i]->destination, djikstra_cost, nb_vertices);
         djikstra_backward(graph, nb_vertices, &dist_array_backward, &parent_array_backward, paths[i]);
         // used to get the number of element
         // when current=-1 there is no parent and the previous current is equal to the
@@ -294,9 +293,8 @@ void test_djikstra_forward_vs_backward_cost(void)
     int ret_code;
     uint32_t nb_vertices, nb_edges, nb_paths;
     double *dist_array_forward, *dist_array_backward;
-    // int *parent_f;
     double cost_forward, cost_backward;
-    // char str[80];
+    char str[80];
 
     get_graph(&config, &graph, &edge_array, &nb_vertices, &nb_edges);
     ret_code = get_paths(&config, &paths, &nb_paths);
@@ -312,13 +310,10 @@ void test_djikstra_forward_vs_backward_cost(void)
     {
         cost_forward = djikstra_forward(graph, nb_vertices, &dist_array_forward, NULL, paths[i]);
         cost_backward = djikstra_backward(graph, nb_vertices, &dist_array_backward, NULL, paths[i]);
-        // cost_forward = djikstra_forward(graph, nb_vertices, &dist_array_forward, &parent_f, &paths[i]);
-        // cost_backward = dijistkra_backward_2(nb_vertices,dist_array_forward, &dist_array_backward,parent_f, cost_forward,&paths[i]);
 
-        // sprintf(str, "path %d failed, incorrect cps calculated", i);
-        TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.001, cost_forward, cost_backward, "salut");
+        sprintf(str, "path %d failed, incorrect cps calculated", i);
+        TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.001, cost_forward, cost_backward, str);
 
-        // free(parent_f);
     }
     free(dist_array_forward);
     free(dist_array_backward);
@@ -328,7 +323,39 @@ void test_djikstra_forward_vs_backward_cost(void)
     free_config(&config);
 }
 
-void test_djikstra_forward(void)
+void test_djikstra_forward_vs_calculated_data_cost(void)
+{
+
+    vertex_t **graph;
+    edge_t **edge_array;
+    path_t **paths;
+    cifre_conf_t config;
+    set_config(CONFIG_FILE_PATH,&config);
+    uint32_t nb_vertices, nb_edges, nb_paths;
+    double *dist_array;
+    double cost, expected_cost;
+    char str[80];
+
+    get_graph(&config, &graph, &edge_array, &nb_vertices, &nb_edges);
+    get_paths(&config, &paths, &nb_paths);
+    
+    dist_array = calloc(nb_vertices, sizeof(double));
+    for (uint32_t i = 0; i < nb_paths; i++)
+    {
+        cost = djikstra_forward(graph, nb_vertices, &dist_array, NULL, paths[i]);
+        expected_cost = calc_path_cps(paths[i]->cps_djikstra_dist, paths[i]->cps_djikstra_danger, paths[i]->profil);
+
+        sprintf(str, "path %d failed, incorrect cps calculated", i);
+        TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.000001, expected_cost, cost, "str");
+    }
+    free(dist_array);
+    free_edge(edge_array, nb_edges);
+    free_graph(graph, nb_vertices);
+    free_paths(paths, nb_paths);
+    free_config(&config);
+}
+
+void test_djikstra_forward_vs_calculated_data_path(void)
 {
 
     vertex_t **graph;
@@ -339,10 +366,13 @@ void test_djikstra_forward(void)
     int ret_code;
     uint32_t nb_vertices, nb_edges, nb_paths;
     double *dist_array;
-    double cost, expected_cost;
-    // char str[80];
+    int *parents_array;
+    int current;
+    int32_t vertex_index;
+    char str[120];
 
     get_graph(&config, &graph, &edge_array, &nb_vertices, &nb_edges);
+    
     ret_code = get_paths(&config, &paths, &nb_paths);
     if (ret_code != OK)
     {
@@ -350,13 +380,20 @@ void test_djikstra_forward(void)
     }
 
     dist_array = calloc(nb_vertices, sizeof(double));
-    for (uint32_t i = 0; i < nb_paths; i++)
+    for (uint32_t path_id = 0; path_id < nb_paths; path_id++)
     {
-        cost = djikstra_forward(graph, nb_vertices, &dist_array, NULL, paths[i]);
-        expected_cost = calc_path_cps(paths[i]->cps_djikstra_dist, paths[i]->cps_djikstra_danger, paths[i]->profil);
-
-        // sprintf(str, "path %d failed, incorrect cps calculated", i);
-        TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.000001, expected_cost, cost, "str");
+        sprintf(str, "path %d failed", path_id);
+        djikstra_forward(graph, nb_vertices, &dist_array, &parents_array, paths[path_id]);
+        current = paths[path_id]->destination;
+        vertex_index = paths[path_id]->nb_djikstra_sp-1;
+        while(current!=-1 && (vertex_index >= 0)){
+            TEST_ASSERT_EQUAL_MESSAGE(current, paths[path_id]->djikstra_sp[vertex_index], str);
+            current = parents_array[current];
+            vertex_index--;
+        }
+        sprintf(str, "path %d failed, The dijsktra shortest path found is shorter or longer than the real one", path_id);
+        TEST_ASSERT_EQUAL_MESSAGE(vertex_index, current, str);
+        free(parents_array); 
     }
     free(dist_array);
     free_edge(edge_array, nb_edges);
@@ -421,7 +458,8 @@ int main(void)
     UNITY_BEGIN();
     RUN_TEST(test_cost_function);
     RUN_TEST(test_min_distance);
-    RUN_TEST(test_djikstra_forward);
+    RUN_TEST(test_djikstra_forward_vs_calculated_data_cost);
+    RUN_TEST(test_djikstra_forward_vs_calculated_data_path);
     RUN_TEST(test_djikstra_forward_vs_backward_path);
     RUN_TEST(test_djikstra_forward_vs_backward_cost);
     RUN_TEST(test_vertices_in_array_scaling);

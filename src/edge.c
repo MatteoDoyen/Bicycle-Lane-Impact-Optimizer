@@ -71,7 +71,6 @@ int get_graph(cifre_conf_t * config,vertex_t ***graph_ref, edge_t ***edge_array,
     uint32_t nb_col, nb_row;
     char ***csv_matrix;
     int ret_code;
-    // char ***csv_matrix = readCSVFile(filename, &nb_row, &nb_col, separator);
     ret_code = readCSVFile(config->graph_file_path, &csv_matrix, &nb_row, &nb_col, config->csv_delimiter);
     if (ret_code != OK)
     {
@@ -83,8 +82,6 @@ int get_graph(cifre_conf_t * config,vertex_t ***graph_ref, edge_t ***edge_array,
 
     *graph_ref = (vertex_t **)calloc(*num_vertices, sizeof(vertex_t *));
     vertex_t **graph = *graph_ref;
-
-    // *graph = (vertex_t *)calloc(*num_vertices,sizeof(vertex_t));
 
     // The number of rows is the exact number of edges in the csv file
     *edge_array = (edge_t **)calloc(nb_row, sizeof(edge_t *));

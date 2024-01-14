@@ -17,9 +17,7 @@ int readCSVFile(const char *filename, char ****csv_matrix_ref, uint32_t *numRows
     // Count the number of rows and columns
     *numRows = 0;
     *numCols = 0;
-    // char *line = malloc(sizeof(char)*MAX_LINE_SIZE);
     char line[MAX_LINE_SIZE];
-    // int32_t max_line_size=0;
     while (fgets(line, MAX_LINE_SIZE, file) != NULL)
     {
         (*numRows)++;

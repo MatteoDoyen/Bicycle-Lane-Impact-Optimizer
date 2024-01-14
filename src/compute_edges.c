@@ -356,7 +356,6 @@ int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_
         {
             if (!impact[path_id])
             {
-                // printf("in\n");
                 continue;
             }
             impact[path_id] = false;

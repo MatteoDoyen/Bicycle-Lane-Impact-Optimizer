@@ -4,7 +4,6 @@
 #include <pthread.h>
 
 void* progressBarThread(void* arg) {
-    // printf("entrée ?\n");
     print_progress_args_t * print_args = (print_progress_args_t *)arg;
     long double currentProgress;
     long double lastProgress = -1;
@@ -12,7 +11,6 @@ void* progressBarThread(void* arg) {
         usleep(UPDATE_INTERVAL_MS * 1000); // Sleep for the specified interval
         currentProgress = *print_args->budget_left;
         if (currentProgress != lastProgress) {
-            // printf("la ?\n");
             lastProgress = currentProgress;
             printProgressBar(currentProgress, print_args->total_budget);
         }

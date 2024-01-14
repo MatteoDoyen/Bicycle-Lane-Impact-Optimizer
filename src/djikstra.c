@@ -18,7 +18,6 @@ double updated_dist(edge_t *edge, path_t *path, double *foward_djikstra, double 
 
 double djikstra_forward(struct vertex_t **graph, int V, double **dist_array, int **parent_array, path_t *path)
 {
-    // (*dist_array) = (double *)calloc(V,  sizeof(double));
     int *parent;
     bool markedVertex[V];
     bool toVisitVertex[V];
@@ -133,7 +132,6 @@ double djikstra_forward(struct vertex_t **graph, int V, double **dist_array, int
 
 double djikstra_backward(struct vertex_t **graph, int V, double **dist_array, int **parent_array, path_t *path)
 {
-    // (*dist_array) = (double *)calloc(V , sizeof(double));
     bool markedVertex[V];
     bool toVisitVertex[V];
     int dest_vertex_id;

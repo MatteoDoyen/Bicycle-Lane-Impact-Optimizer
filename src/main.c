@@ -45,7 +45,7 @@ int main(int argc, char const *argv[])
         fprintf(stderr, "Error creating progress bar thread: %d\n", ret);
         return -1;
     }
-    selected_edge_t *selected_edges = NULL;
+    double_unsigned_list_t *selected_edges = NULL;
     clock_gettime(CLOCK_MONOTONIC, &start);
     ret = get_edges_to_optimize_for_budget_threaded(&config, &budget_used, &selected_edges);
     if (ret != OK)
@@ -61,7 +61,7 @@ int main(int argc, char const *argv[])
     budget_used = config.budget;
     pthread_join(progressBar, NULL);
     save_selected_edges(selected_edges, result_file_name);
-    free_select_edges(selected_edges);
+    free_double_unsigned_list_t(selected_edges);
 
     printf("budget used : %Lf\n", copy_budget_used);
     printf("Time taken by myThreadedFunction: %f seconds\n", elapsed_time_thread);

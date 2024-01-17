@@ -29,9 +29,9 @@ void test_get_edges_to_optimize_for_budget_thread_vs_single(void)
     long double budget_used;
     cifre_conf_t config;
     set_config(CONFIG_FILE_PATH,&config);
-    selected_edge_t *temp_single, *temp_thread;
-    selected_edge_t *selected_edges_single = NULL;
-    selected_edge_t *selected_edges_multi = NULL;
+    double_unsigned_list_t *temp_single, *temp_thread;
+    double_unsigned_list_t *selected_edges_single = NULL;
+    double_unsigned_list_t *selected_edges_multi = NULL;
 
     get_edges_to_optimize_for_budget(&config,&budget_used,&selected_edges_single);
     get_edges_to_optimize_for_budget_threaded(&config,&budget_used, &selected_edges_multi);
@@ -40,15 +40,15 @@ void test_get_edges_to_optimize_for_budget_thread_vs_single(void)
     temp_thread = selected_edges_multi;
     while (temp_single != NULL)
     {
-        // TEST_ASSERT_EQUAL_MESSAGE(expexted_id[taille],temp->edge_id,"Only one edge must be selected for the budget");
-        TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(temp_single->cost_saved, temp_thread->cost_saved, "Both cost saved should be equal");
-        TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(temp_single->edge_id, temp_thread->edge_id, "Both edge_id should be the same");
+        // TEST_ASSERT_EQUAL_MESSAGE(expexted_id[taille],temp->u_value,"Only one edge must be selected for the budget");
+        TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(temp_single->d_value, temp_thread->d_value, "Both cost saved should be equal");
+        TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(temp_single->u_value, temp_thread->u_value, "Both edge_id should be the same");
         temp_single = temp_single->next;
         temp_thread = temp_thread->next;
     }
     TEST_ASSERT_EQUAL_MESSAGE(temp_single, temp_thread, "Both pointers should be equals to NULL");
-    free_select_edges(selected_edges_single);
-    free_select_edges(selected_edges_multi);
+    free_double_unsigned_list_t(selected_edges_single);
+    free_double_unsigned_list_t(selected_edges_multi);
     free_config(&config);
 }
 
@@ -60,18 +60,18 @@ void test_get_edges_to_optimize_for_budget_no_edge(void)
     config.budget = 0.49;
     long double budget_used; // lowest dist to optimize is 0.5
     int taille = 0;
-    selected_edge_t *selected_edges;
+    double_unsigned_list_t *selected_edges;
 
     get_edges_to_optimize_for_budget(&config,&budget_used,&selected_edges);
 
-    selected_edge_t *temp = selected_edges;
+    double_unsigned_list_t *temp = selected_edges;
     while (temp != NULL)
     {
         temp = temp->next;
         taille++;
     }
     TEST_ASSERT_EQUAL_MESSAGE(0, taille, "Only two edge must be selected for the budget");
-    free_select_edges(selected_edges);
+    free_double_unsigned_list_t(selected_edges);
     free_config(&config);
 }
 
@@ -84,20 +84,20 @@ void test_get_edges_to_optimize_for_budget_multiple_edge(void)
     long double expexted_cost_saved[2] = {0.1, 1.1};
     long double expexted_id[2] = {6, 2};
     int taille = 0;
-    selected_edge_t *selected_edges;
+    double_unsigned_list_t *selected_edges;
 
     get_edges_to_optimize_for_budget(&config,&budget_used, &selected_edges);
 
-    selected_edge_t *temp = selected_edges;
+    double_unsigned_list_t *temp = selected_edges;
     while (temp != NULL)
     {
-        TEST_ASSERT_EQUAL_MESSAGE(expexted_id[taille], temp->edge_id, "Only one edge must be selected for the budget");
-        TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(expexted_cost_saved[taille], temp->cost_saved, "Only one edge must be selected for the budget");
+        TEST_ASSERT_EQUAL_MESSAGE(expexted_id[taille], temp->u_value, "Only one edge must be selected for the budget");
+        TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(expexted_cost_saved[taille], temp->d_value, "Only one edge must be selected for the budget");
         temp = temp->next;
         taille++;
     }
     TEST_ASSERT_EQUAL_MESSAGE(2, taille, "Only two edge must be selected for the budget");
-    free_select_edges(selected_edges);
+    free_double_unsigned_list_t(selected_edges);
     free_config(&config);
 }
 
@@ -117,20 +117,20 @@ void test_get_edges_to_optimize_for_budget_one_edge(void)
     config.budget =  0.5;
     long double buget_left;
     int taille = 0;
-    selected_edge_t *selected_edges = NULL;
+    double_unsigned_list_t *selected_edges = NULL;
 
     get_edges_to_optimize_for_budget(&config,&buget_left, &selected_edges);
 
-    selected_edge_t *temp = selected_edges;
+    double_unsigned_list_t *temp = selected_edges;
     while (temp != NULL)
     {
         temp = temp->next;
         taille++;
     }
     TEST_ASSERT_EQUAL_MESSAGE(1, taille, "");
-    TEST_ASSERT_EQUAL_MESSAGE(2, selected_edges->edge_id, "The id ");
-    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.1, selected_edges->cost_saved, "Only one edge must be selected for the budget");
-    free_select_edges(selected_edges);
+    TEST_ASSERT_EQUAL_MESSAGE(2, selected_edges->u_value, "The id ");
+    TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(1.1, selected_edges->d_value, "Only one edge must be selected for the budget");
+    free_double_unsigned_list_t(selected_edges);
     free_config(&config);
 }
 
@@ -247,13 +247,15 @@ void test_djikstra_forward_vs_backward_path(void)
         return;
     }
 
+    parent_array_forward = calloc(nb_vertices,sizeof(int));
+    parent_array_backward = calloc(nb_vertices,sizeof(int));
     dist_array_forward = calloc(nb_vertices, sizeof(double));
     dist_array_backward = calloc(nb_vertices, sizeof(double));
 
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        cost = djikstra_forward(graph, nb_vertices, &dist_array_forward, &parent_array_forward, paths[i]);
-        djikstra_backward(graph, nb_vertices, &dist_array_backward, &parent_array_backward, paths[i]);
+        cost = djikstra_forward(graph, nb_vertices, &dist_array_forward, parent_array_forward, paths[i]);
+        djikstra_backward(graph, nb_vertices, &dist_array_backward, parent_array_backward, paths[i]);
         // used to get the number of element
         // when current=-1 there is no parent and the previous current is equal to the
         // destination for backward djikstra
@@ -272,9 +274,9 @@ void test_djikstra_forward_vs_backward_path(void)
                 TEST_ASSERT_EQUAL_MESSAGE(cost,dist_array_forward[old_current],"the distance to the destionation should be the same than the djikstra cost");
             }
         }
-        free(parent_array_backward);
-        free(parent_array_forward);
     }
+    free(parent_array_backward);
+    free(parent_array_forward);
     free(dist_array_forward);
     free(dist_array_backward);
     free_edge(edge_array, nb_edges);
@@ -378,12 +380,12 @@ void test_djikstra_forward_vs_calculated_data_path(void)
     {
         return;
     }
-
+    parents_array = calloc(nb_vertices,sizeof(int));
     dist_array = calloc(nb_vertices, sizeof(double));
     for (uint32_t path_id = 0; path_id < nb_paths; path_id++)
     {
         sprintf(str, "path %d failed", path_id);
-        djikstra_forward(graph, nb_vertices, &dist_array, &parents_array, paths[path_id]);
+        djikstra_forward(graph, nb_vertices, &dist_array, parents_array, paths[path_id]);
         current = paths[path_id]->destination;
         vertex_index = paths[path_id]->nb_djikstra_sp-1;
         while(current!=-1 && (vertex_index >= 0)){
@@ -393,8 +395,8 @@ void test_djikstra_forward_vs_calculated_data_path(void)
         }
         sprintf(str, "path %d failed, The dijsktra shortest path found is shorter or longer than the real one", path_id);
         TEST_ASSERT_EQUAL_MESSAGE(vertex_index, current, str);
-        free(parents_array); 
     }
+    free(parents_array); 
     free(dist_array);
     free_edge(edge_array, nb_edges);
     free_graph(graph, nb_vertices);
@@ -438,13 +440,13 @@ void test_min_distance(void)
         dist[i] = i;
     }
 
-    list_node_t vertices_to_visit[4];
+    unsigned_list_t vertices_to_visit[4];
     for (int i = 0; i < 3; i++)
     {
-        vertices_to_visit[i].vertex_id = i;
+        vertices_to_visit[i].u_value = i;
         vertices_to_visit[i].next = (vertices_to_visit + (i + 1));
     }
-    vertices_to_visit[3].vertex_id = 3;
+    vertices_to_visit[3].u_value = 3;
     vertices_to_visit[3].next = NULL;
 
     TEST_ASSERT_EQUAL(-1, min_distance(dist, NULL));

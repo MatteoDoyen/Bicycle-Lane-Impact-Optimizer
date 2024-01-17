@@ -179,3 +179,85 @@ int parseJsonIntegerArray(const char *json, unsigned int **result_array_ref, uns
     cJSON_Delete(root);
     return OK;
 }
+
+int add_double_unsigned_list_t(double_unsigned_list_t **head, unsigned u_value, long double d_value)
+{
+    double_unsigned_list_t *new_list_t = (double_unsigned_list_t *)calloc(1, sizeof(double_unsigned_list_t));
+    if (new_list_t == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed\n");
+        return MEMORY_ALLOC_ERROR;
+    }
+
+    new_list_t->u_value = u_value;
+    new_list_t->d_value = d_value;
+    new_list_t->next = *head;
+    *head = new_list_t;
+    return OK;
+}
+
+void free_double_unsigned_list_t(double_unsigned_list_t *head){
+    double_unsigned_list_t *current = head;
+    double_unsigned_list_t *next_improved_edge;
+
+    while (current != NULL)
+    {
+        next_improved_edge = current->next;
+        free(current);
+        current = next_improved_edge;
+    }
+}
+
+int add_unsigned_list_t(unsigned_list_t **head, unsigned u_value){
+    unsigned_list_t *new_list_t = (unsigned_list_t *)calloc(1, sizeof(unsigned_list_t));
+    if (new_list_t == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed\n");
+        return MEMORY_ALLOC_ERROR;
+    }
+    new_list_t->u_value = u_value;
+    new_list_t->next = *head;
+    *head = new_list_t;
+    return OK;
+}
+
+void free_unsigned_list_t(unsigned_list_t *head){
+    unsigned_list_t *current = head;
+    unsigned_list_t *next_improved_edge;
+
+    while (current != NULL)
+    {
+        next_improved_edge = current->next;
+        free(current);
+        current = next_improved_edge;
+    }
+}
+
+void print_double_unsigned_list_t(double_unsigned_list_t *head)
+{
+    double_unsigned_list_t *current = head;
+    while (current != NULL)
+    {
+        printf("%d %Lf\n", current->u_value, current->d_value);
+        current = current->next;
+    }
+}
+void delete_value_in_unsigned_list(unsigned_list_t **head, unsigned u_value){
+        unsigned_list_t *temp, *old;
+        temp = *head;
+        old = NULL;
+        while (temp != NULL && temp->u_value != u_value)
+        {
+            old = temp;
+            temp = temp->next;
+        }
+        if (old != NULL)
+        {
+            old->next = temp->next;
+        }
+        else
+        {
+            *head = temp->next;
+        }
+        free(temp);
+}

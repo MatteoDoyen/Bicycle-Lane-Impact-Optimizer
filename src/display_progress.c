@@ -39,7 +39,7 @@ void printProgressBar(double progress, double total) {
             printf(" ");
         }
     }
-    displayed_percentage = percentage * 100 >0 ? percentage * 100 :0; 
+    displayed_percentage = (percentage * 100) > 0 ? (percentage * 100) :0; 
     printf("] budget used : %3.2f%%\033[0m\r", displayed_percentage);
     fflush(stdout);
 }

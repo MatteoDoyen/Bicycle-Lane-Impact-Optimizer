@@ -29,6 +29,7 @@ void printProgressBar(double progress, double total) {
     const int barWidth = 50;
     double percentage = (double)(progress / total);
     int barLength = barWidth * percentage;
+    double displayed_percentage;
 
     printf("\033[1;32m[");
     for (int i = 0; i < barWidth; ++i) {
@@ -38,7 +39,7 @@ void printProgressBar(double progress, double total) {
             printf(" ");
         }
     }
-
-    printf("] budget used : %3.2f%%\033[0m\r", percentage * 100);
+    displayed_percentage = percentage * 100 >0 ? percentage * 100 :0; 
+    printf("] budget used : %3.2f%%\033[0m\r", displayed_percentage);
     fflush(stdout);
 }

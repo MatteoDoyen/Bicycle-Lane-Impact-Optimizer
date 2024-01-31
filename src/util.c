@@ -198,13 +198,13 @@ int add_double_unsigned_list_t(double_unsigned_list_t **head, unsigned u_value, 
 
 void free_double_unsigned_list_t(double_unsigned_list_t *head){
     double_unsigned_list_t *current = head;
-    double_unsigned_list_t *next_improved_edge;
+    double_unsigned_list_t *next_double_unsigned_node;
 
     while (current != NULL)
     {
-        next_improved_edge = current->next;
+        next_double_unsigned_node = current->next;
         free(current);
-        current = next_improved_edge;
+        current = next_double_unsigned_node;
     }
 }
 
@@ -223,13 +223,13 @@ int add_unsigned_list_t(unsigned_list_t **head, unsigned u_value){
 
 void free_unsigned_list_t(unsigned_list_t *head){
     unsigned_list_t *current = head;
-    unsigned_list_t *next_improved_edge;
+    unsigned_list_t *next_unsigned_node;
 
     while (current != NULL)
     {
-        next_improved_edge = current->next;
+        next_unsigned_node = current->next;
         free(current);
-        current = next_improved_edge;
+        current = next_unsigned_node;
     }
 }
 

@@ -80,7 +80,7 @@ int get_edges_to_optimize_for_budget_threaded(cifre_conf_t * config,long double 
     vertex_t **graph;
     path_t **paths;
     edge_t **edge_array;
-    int ret_code;
+    int ret_code = OK;
     (*selected_edges) = NULL;
     long double budget_left=config->budget;
     long double max_saved_cost;
@@ -88,6 +88,10 @@ int get_edges_to_optimize_for_budget_threaded(cifre_conf_t * config,long double 
     int32_t edge_id_to_optimize;
     bool stop = false;
     pthread_mutex_t mutex_cost_diff_array;
+    thread_arg_t *thread_arg;
+    pthread_t *threads;
+    bool *impact;
+    double_unsigned_list_t **cost_diff_array;
 
     pthread_mutex_init(&mutex_cost_diff_array, NULL);
 
@@ -99,54 +103,54 @@ int get_edges_to_optimize_for_budget_threaded(cifre_conf_t * config,long double 
     ret_code = get_paths(config, &paths, &nb_paths);
     if (ret_code != OK)
     {
-        free_edge(edge_array, nb_edges);
-        free_graph(graph, nb_vertices);
-        return ret_code;
+        goto cleanup_edge_graph;
     }
-    bool *impact = calloc(nb_paths, sizeof(bool));
+    impact = calloc(nb_paths, sizeof(bool));
     if (impact == NULL)
     {
-        free_edge(edge_array, nb_edges);
-        free_graph(graph, nb_vertices);
-        free_paths(paths, nb_paths);
         fprintf(stderr, "Memory allocation failed for impact array\n");
-        return MEMORY_ALLOC_ERROR;
+        ret_code = MEMORY_ALLOC_ERROR;
+        goto cleanup_paths;
     }
-    double_unsigned_list_t **cost_diff_array;
     ret_code = init_cost_diff_array(&cost_diff_array, nb_paths);
     if (ret_code != OK)
     {
-        free(impact);
-        free_edge(edge_array, nb_edges);
-        free_graph(graph, nb_vertices);
-        free_paths(paths, nb_paths);
         fprintf(stderr, "Memory allocation failed for cost_diff_array\n");
-        return MEMORY_ALLOC_ERROR;
+        goto cleanup_impacts;
     }
-
     for (uint32_t i = 0; i < nb_paths; i++)
     {
         impact[i] = true;
     }
-    thread_arg_t thread_arg[config->thread_number];
-    pthread_t threads[config->thread_number];
-    for (uint32_t i= 0; i < config->thread_number; i++)
+    thread_arg = calloc(config->thread_number,sizeof(thread_arg_t));
+    if (thread_arg == NULL)
     {
-        thread_arg[i].cost_diff_array = cost_diff_array;
-        thread_arg[i].edge_array = edge_array;
-        thread_arg[i].graph = graph;
-        thread_arg[i].nb_edges = nb_edges;
-        thread_arg[i].nb_vertices = nb_vertices;
-        thread_arg[i].nb_paths = nb_paths;
-        thread_arg[i].thread_id = i;
-        thread_arg[i].offset = config->thread_number;
-        thread_arg[i].mutex = &mutex_cost_diff_array;
-        thread_arg[i].paths = paths;
-        thread_arg[i].impact = impact;
-        thread_arg[i].budget_left = &budget_left;
+        fprintf(stderr, "Memory allocation failed for thread_arg\n");
+        goto clean_up_thread_arg;
     }
-
-    
+    threads = calloc(config->thread_number,sizeof(pthread_t));
+    if (threads == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed for threads\n");
+        goto clean_up_threads;
+    }
+    for (uint32_t i = 0; i < config->thread_number; i++)
+    {
+        thread_arg[i] = (thread_arg_t){
+            .cost_diff_array = cost_diff_array,
+            .edge_array = edge_array,
+            .graph = graph,
+            .nb_edges = nb_edges,
+            .nb_vertices = nb_vertices,
+            .nb_paths = nb_paths,
+            .thread_id = i,
+            .offset = config->thread_number,
+            .mutex = &mutex_cost_diff_array,
+            .paths = paths,
+            .impact = impact,
+            .budget_left = &budget_left
+        };
+    }
     while (!stop)
     {
         // used to know the cost difference, the optimization of the edge would
@@ -179,27 +183,33 @@ int get_edges_to_optimize_for_budget_threaded(cifre_conf_t * config,long double 
                     cost_diff_array[path_id] = NULL;
                 }
             }
+            //add the selected edge to the selected_edge array
             ret_code = add_double_unsigned_list_t(selected_edges,edge_array[edge_id_to_optimize]->id, max_saved_cost);
             if (ret_code != OK)
             {
-                free(cost_diff_array);
-                free(impact);
-                free_edge(edge_array, nb_edges);
-                free_graph(graph, nb_vertices);
-                free_paths(paths, nb_paths);
                 free_double_unsigned_list_t(*selected_edges);
-                return ret_code;
+                *selected_edges = NULL;
+                goto clean_up_cost_diff;
             }
             budget_left = budget_left - edge_array[edge_id_to_optimize]->dist;
             *budget_used = config->budget - budget_left;
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
         }
     }
+
+clean_up_cost_diff:
+    free_cost_diff_array(cost_diff_array,nb_paths);
+clean_up_threads:
+    free(threads);
+clean_up_thread_arg:
+    free(thread_arg);
+cleanup_impacts:
     free(impact);
+cleanup_paths:
+    free_paths(paths, nb_paths);
+cleanup_edge_graph:
     free_edge(edge_array, nb_edges);
     free_graph(graph, nb_vertices);
-    free_paths(paths, nb_paths);
-    free_improved_edge_array(cost_diff_array,nb_paths);
     return OK;
 }
 
@@ -215,13 +225,13 @@ int get_edges_to_optimize_for_budget_threaded(cifre_conf_t * config,long double 
    --------------------------------------------------------------------------
    Description:
    This function "improves" an edge, recalculate the paths who have the said
-   edge within their visibility and compare the new "cost" to the old cost of
-   the paths.
+   edge within their visibility and compare the new dijkstra "cost" to the old
+   cost of the paths.
    If the costs is smaller, it is added to the total costs saved by improving
    the edge.
-   If the improvement of the road had a non-null impact the graph is then
+   If the best edge improvement of the graph had a non-null impact, the graph is then
    updated to take in this improvement. The function stops when the budget
-   is reached or that no other edges improvement has an impact
+   is reached or that no other edges improvement has an impact.
 
    --------------------------------------------------------------------------
    Return value:
@@ -393,7 +403,7 @@ int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_
     free_edge(edge_array, nb_edges);
     free_graph(graph, nb_vertices);
     free_paths(paths, nb_paths);
-    free_improved_edge_array(cost_diff_array,nb_paths);
+    free_cost_diff_array(cost_diff_array,nb_paths);
     return OK;
 }
 
@@ -410,7 +420,7 @@ int init_cost_diff_array(double_unsigned_list_t ***diff_array, unsigned int nb_p
     return OK;
 }
 
-void free_improved_edge_array(double_unsigned_list_t **array, uint32_t nb_paths){
+void free_cost_diff_array(double_unsigned_list_t **array, uint32_t nb_paths){
     for (size_t path_id = 0; path_id < nb_paths; path_id++)
     {
         free_double_unsigned_list_t(array[path_id]);

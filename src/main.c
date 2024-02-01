@@ -1,5 +1,6 @@
 #include "../header/djikstra.h"
-#include "../header/compute_edges.h"
+#include "../header/compute_edges_pthread.h"
+#include "../header/compute_edges_omp.h"
 #include "../header/display_progress.h"
 #include "../header/config.h"
 #include "../header/util.h"
@@ -47,7 +48,7 @@ int main(int argc, char const *argv[])
     }
     double_unsigned_list_t *selected_edges = NULL;
     clock_gettime(CLOCK_MONOTONIC, &start);
-    ret = get_edges_to_optimize_for_budget_threaded(&config, &budget_used, &selected_edges);
+    ret = get_edges_to_optimize_for_budget_omp(&config, &budget_used, &selected_edges);
     if (ret != OK)
     {
         budget_used = config.budget;

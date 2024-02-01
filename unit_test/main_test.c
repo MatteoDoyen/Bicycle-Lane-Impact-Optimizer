@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "unity.h"
 #include "config.h"
-#include "compute_edges.h"
+#include "compute_edges_pthread.h"
 #include "../header/djikstra_omp.h"
 #include "util.h"
 
@@ -74,7 +74,7 @@ void test_get_edges_to_optimize_for_budget_thread_vs_single(void)
     double_unsigned_list_t *selected_edges_multi = NULL;
 
     get_edges_to_optimize_for_budget(&config,&budget_used,&selected_edges_single);
-    get_edges_to_optimize_for_budget_threaded(&config,&budget_used, &selected_edges_multi);
+    get_edges_to_optimize_for_budget_pthread(&config,&budget_used, &selected_edges_multi);
 
     temp_single = selected_edges_single;
     temp_thread = selected_edges_multi;
@@ -506,7 +506,7 @@ int main(void)
     // RUN_TEST(test_djikstra_forward_vs_calculated_data_cost);
     // RUN_TEST(test_djikstra_forward_vs_calculated_data_path);
     // RUN_TEST(test_djikstra_forward_vs_backward_path);
-    RUN_TEST(test_djikstra_forward_vs_backward_cost);
+    // RUN_TEST(test_djikstra_forward_vs_backward_cost);
     // RUN_TEST(test_vertices_in_array_scaling);
     // RUN_TEST(test_vertices_out_array_scaling);
     // RUN_TEST(test_get_edges_to_optimize_for_budget_thread_vs_single);

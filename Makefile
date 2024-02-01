@@ -2,7 +2,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS = -Wall -Wextra -I./header
+CFLAGS = -Wall -Wextra -fopenmp -I./header
 
 # Source and header directories
 SRC_DIR = src

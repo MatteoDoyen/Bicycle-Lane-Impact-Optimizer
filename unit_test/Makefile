@@ -5,7 +5,7 @@ HEADER_DIR = ../header
 TEST_DIR = ../unit_test
 
 # Compiler flags
-CFLAGS = -Wall -Wextra -I$(HEADER_DIR) -I$(TEST_DIR)
+CFLAGS = -Wall -Wextra -fopenmp -I$(HEADER_DIR) -I$(TEST_DIR)
 
 # Source and header directories
 SRC_DIR = ../src

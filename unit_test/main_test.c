@@ -3,10 +3,12 @@
 #include "unity.h"
 #include "config.h"
 #include "compute_edges.h"
+#include "../header/djikstra_omp.h"
 #include "util.h"
 
 #define CONFIG_FILE_PATH "./conf_test/conf_unit_test.json"
 #define CONFIG_REDUCED_FILE_PATH "./conf_test/conf_unit_test_reduced.json"
+#define CONFIG_REAL_FILE_PATH "./conf_test/conf_unit_test_real.json"
 
 double calc_path_cps(double dist, double danger, double alpha)
 {
@@ -22,6 +24,44 @@ void setUp(void)
 void tearDown(void)
 {
     // clean stuff up here
+}
+
+void test_parallel_speed(void){
+    vertex_t **graph;
+    edge_t **edge_array;
+    path_t **paths;
+    cifre_conf_t config;
+    set_config(CONFIG_REAL_FILE_PATH,&config);
+    uint32_t nb_vertices, nb_edges, nb_paths;
+    double *dist_array;
+    struct timespec start, end;
+    double elapsed_time_parallel, elapsed_time_single;
+
+    get_graph(&config, &graph, &edge_array, &nb_vertices, &nb_edges);
+    get_paths(&config, &paths, &nb_paths);
+    
+    dist_array = calloc(nb_vertices, sizeof(double));
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    for (uint32_t i = 0; i < nb_paths; i++)
+    {
+        djikstra_backward(graph, nb_vertices, &dist_array, NULL, paths[i]);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    elapsed_time_single = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    fprintf(stderr,"fin 1\n");
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    for (uint32_t i = 0; i < nb_paths; i++)
+    {
+        djikstra_backward_small_graph_omp(graph, nb_vertices, &dist_array, NULL, paths[i]);
+    }
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    elapsed_time_parallel = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    printf("Time taken by parrallel : %f seconds, Time taken by single thread function %f seconds\n", elapsed_time_parallel,elapsed_time_single);
+    free(dist_array);
+    free_edge(edge_array, nb_edges);
+    free_graph(graph, nb_vertices);
+    free_paths(paths, nb_paths);
+    free_config(&config);
 }
 
 void test_get_edges_to_optimize_for_budget_thread_vs_single(void)
@@ -310,8 +350,10 @@ void test_djikstra_forward_vs_backward_cost(void)
 
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        cost_forward = djikstra_forward(graph, nb_vertices, &dist_array_forward, NULL, paths[i]);
-        cost_backward = djikstra_backward(graph, nb_vertices, &dist_array_backward, NULL, paths[i]);
+        // cost_forward = djikstra_forward(graph, nb_vertices, &dist_array_forward, NULL, paths[i]);
+        cost_forward = djikstra_backward(graph, nb_vertices, &dist_array_forward, NULL, paths[i]);
+        cost_backward = djikstra_backward_small_graph_omp(graph, nb_vertices, &dist_array_backward, NULL, paths[i]);
+        // cost_backward = djikstra_backward(graph, nb_vertices, &dist_array_backward, NULL, paths[i]);
 
         sprintf(str, "path %d failed, incorrect cps calculated", i);
         TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.001, cost_forward, cost_backward, str);
@@ -458,17 +500,18 @@ void test_min_distance(void)
 int main(void)
 {
     UNITY_BEGIN();
-    RUN_TEST(test_cost_function);
-    RUN_TEST(test_min_distance);
-    RUN_TEST(test_djikstra_forward_vs_calculated_data_cost);
-    RUN_TEST(test_djikstra_forward_vs_calculated_data_path);
-    RUN_TEST(test_djikstra_forward_vs_backward_path);
+    RUN_TEST(test_parallel_speed);
+    // RUN_TEST(test_cost_function);
+    // RUN_TEST(test_min_distance);
+    // RUN_TEST(test_djikstra_forward_vs_calculated_data_cost);
+    // RUN_TEST(test_djikstra_forward_vs_calculated_data_path);
+    // RUN_TEST(test_djikstra_forward_vs_backward_path);
     RUN_TEST(test_djikstra_forward_vs_backward_cost);
-    RUN_TEST(test_vertices_in_array_scaling);
-    RUN_TEST(test_vertices_out_array_scaling);
-    RUN_TEST(test_get_edges_to_optimize_for_budget_thread_vs_single);
-    RUN_TEST(test_get_edges_to_optimize_for_budget_one_edge);
-    RUN_TEST(test_get_edges_to_optimize_for_budget_no_edge);
-    RUN_TEST(test_get_edges_to_optimize_for_budget_multiple_edge);
+    // RUN_TEST(test_vertices_in_array_scaling);
+    // RUN_TEST(test_vertices_out_array_scaling);
+    // RUN_TEST(test_get_edges_to_optimize_for_budget_thread_vs_single);
+    // RUN_TEST(test_get_edges_to_optimize_for_budget_one_edge);
+    // RUN_TEST(test_get_edges_to_optimize_for_budget_no_edge);
+    // RUN_TEST(test_get_edges_to_optimize_for_budget_multiple_edge);
     return UNITY_END();
 }

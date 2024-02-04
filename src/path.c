@@ -2,6 +2,16 @@
 #include <stdbool.h>
 #include "../header/util.h"
 
+edge_t* get_edge_if_exist(vertex_t ** graph,uint32_t vertex_source, uint32_t vertex_dest){
+    for (uint32_t i = 0; i < graph[vertex_source]->nb_edges_out; i++)
+    {
+        if(graph[vertex_source]->out_edges[i]->id == vertex_dest){
+            return graph[vertex_source]->out_edges[i];
+        }
+    }
+    return NULL;
+}
+
 bool vertex_is_in_visibilite(path_t *paths, uint32_t vertex_id)
 {
 
@@ -104,8 +114,6 @@ int get_paths(cifre_conf_t *conf,path_t ***paths_ref, uint32_t *nb_paths)
         {
             return ret_code;
         }
-        paths[id_offset]->foward_djikstra = NULL;
-        paths[id_offset]->backward_djikstra = NULL;
     }
     freeCSVMatrix(csv_matrix, nb_row, nb_col);
     *nb_paths = (nb_row - 1);

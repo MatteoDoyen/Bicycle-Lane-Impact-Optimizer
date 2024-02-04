@@ -52,8 +52,6 @@ typedef struct
     double djikstra_dist;
     double cps_djikstra_dist;
     double cps_djikstra_danger;
-    double *foward_djikstra;
-    double *backward_djikstra;
 } path_t;
 
 int get_paths(cifre_conf_t *conf, path_t ***paths, uint32_t *nb_paths);

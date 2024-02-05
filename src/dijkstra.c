@@ -1,4 +1,4 @@
-#include "../header/djikstra.h"
+#include "../header/dijkstra.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <omp.h>
@@ -8,14 +8,14 @@ double cost_function(double *alpha, double *distance, double *danger)
     return ((*alpha) * (*distance)) + ((1 - (*alpha)) * (*danger));
 }
 
-/// update the distance in the cached djikstra
+/// update the distance in the cached dijkstra
 /// here the vertex already has an updated distance
-double updated_dist(edge_t *edge, path_t *path, double *foward_djikstra, double *backward_djikstra)
+double updated_dist(edge_t *edge, path_t *path, double *foward_dijkstra, double *backward_dijkstra)
 {
-    return foward_djikstra[edge->pred->id] + cost_function(&path->profil, &edge->dist, &edge->dist) + backward_djikstra[edge->succ->id];
+    return foward_dijkstra[edge->pred->id] + cost_function(&path->profil, &edge->dist, &edge->dist) + backward_dijkstra[edge->succ->id];
 }
 
-double djikstra_forward(struct vertex_t **graph, int nb_vertices, double **dist_array_ref, int *parents, path_t *path)
+double dijkstra_forward(struct vertex_t **graph, int nb_vertices, double **dist_array_ref, int *parents, path_t *path)
 {
     bool markedVertex[nb_vertices];
     bool toVisitVertex[nb_vertices];
@@ -94,7 +94,7 @@ double djikstra_forward(struct vertex_t **graph, int nb_vertices, double **dist_
     return dist_array[destination];
 }
 
-double djikstra_backward(struct vertex_t **graph, int nb_vertices, double **dist_array_ref, int *parents, path_t *path)
+double dijkstra_backward(struct vertex_t **graph, int nb_vertices, double **dist_array_ref, int *parents, path_t *path)
 {
     bool markedVertex[nb_vertices];
     bool toVisitVertex[nb_vertices];
@@ -177,7 +177,7 @@ double djikstra_backward(struct vertex_t **graph, int nb_vertices, double **dist
     return dist_array[destination];
 }
 
-double djikstra_backward_full_graph(struct vertex_t **graph, int nb_vertices, double **dist_array_ref, int *parents, path_t *path)
+double dijkstra_backward_full_graph(struct vertex_t **graph, int nb_vertices, double **dist_array_ref, int *parents, path_t *path)
 {
     bool markedVertex[nb_vertices];
     int dest_vertex_id;

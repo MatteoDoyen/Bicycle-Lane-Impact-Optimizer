@@ -4,7 +4,7 @@
 #include "edge.h"
 #include "path.h"
 #include "util.h"
-#include "djikstra.h"
+#include "dijkstra.h"
 
 
 int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget, double_unsigned_list_t **selected_edges);

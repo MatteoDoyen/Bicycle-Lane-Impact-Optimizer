@@ -1,4 +1,4 @@
-#include "../header/djikstra.h"
+#include "../header/dijkstra.h"
 #include "../header/compute_edges_pthread.h"
 #include "../header/compute_edges_omp.h"
 #include "../header/display_progress.h"

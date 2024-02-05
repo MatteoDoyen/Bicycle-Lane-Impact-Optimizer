@@ -1,5 +1,5 @@
-#include "../header/djikstra.h"
-#include "../header/djikstra_omp.h"
+#include "../header/dijkstra.h"
+#include "../header/dijkstra_omp.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <omp.h>
@@ -38,7 +38,7 @@ int min_distance_full_graph_omp(double dist[], bool markedVertex[], int V)
     return min_index;
 }
 
-double djikstra_backward_full_graph_omp(struct vertex_t **graph, int nb_vertices, double **dist_array_ref, int *parents, path_t *path)
+double dijkstra_backward_full_graph_omp(struct vertex_t **graph, int nb_vertices, double **dist_array_ref, int *parents, path_t *path)
 {
    bool markedVertex[nb_vertices];
     int dest_vertex_id;
@@ -102,7 +102,7 @@ double djikstra_backward_full_graph_omp(struct vertex_t **graph, int nb_vertices
     return dist_array[destination];
 }
 
-double djikstra_backward_small_graph_omp(struct vertex_t **graph, int nb_vertices, double **dist_array_ref, int *parents, path_t *path)
+double dijkstra_backward_small_graph_omp(struct vertex_t **graph, int nb_vertices, double **dist_array_ref, int *parents, path_t *path)
 {
     bool markedVertex[nb_vertices];
     bool toVisitVertex[nb_vertices];

@@ -44,14 +44,14 @@ typedef struct
     double distance;
     double danger;
     uint32_t *chemin;
-    uint32_t *djikstra_sp;
-    uint32_t nb_djikstra_sp;
+    uint32_t *dijkstra_sp;
+    uint32_t nb_dijkstra_sp;
     uint32_t nb_chemin;
     uint32_t *visibilite;
     uint32_t nb_visibilite;
-    double djikstra_dist;
-    double cps_djikstra_dist;
-    double cps_djikstra_danger;
+    double dijkstra_dist;
+    double cps_dijkstra_dist;
+    double cps_dijkstra_danger;
 } path_t;
 
 int get_paths(cifre_conf_t *conf, path_t ***paths, uint32_t *nb_paths);

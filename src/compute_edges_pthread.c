@@ -6,11 +6,11 @@
 void *compute_optimize_for_budget_threaded(void *arg)
 {
     thread_arg_t *thread_arg = (thread_arg_t *)arg;
-    long double new_djikstra_cost, djikstra_cost, cost_difference;
-    double *djikstra_backward_dist = (double *)calloc(thread_arg->nb_vertices, sizeof(double));
-    double *djikstra_forward_dist = (double *)calloc(thread_arg->nb_vertices, sizeof(double));
+    long double new_dijkstra_cost, dijkstra_cost, cost_difference;
+    double *dijkstra_backward_dist = (double *)calloc(thread_arg->nb_vertices, sizeof(double));
+    double *dijkstra_forward_dist = (double *)calloc(thread_arg->nb_vertices, sizeof(double));
 
-    if (djikstra_backward_dist == NULL || djikstra_forward_dist == NULL)
+    if (dijkstra_backward_dist == NULL || dijkstra_forward_dist == NULL)
     {
         return (void *)MEMORY_ALLOC_ERROR;
     }
@@ -24,8 +24,8 @@ void *compute_optimize_for_budget_threaded(void *arg)
             continue;
         }
         thread_arg->impact[path_id] = false;
-        djikstra_cost = djikstra_forward(thread_arg->graph, thread_arg->nb_vertices, &djikstra_forward_dist,NULL, thread_arg->paths[path_id]);
-        djikstra_backward(thread_arg->graph, thread_arg->nb_vertices, &djikstra_backward_dist, NULL, thread_arg->paths[path_id]);
+        dijkstra_cost = dijkstra_forward(thread_arg->graph, thread_arg->nb_vertices, &dijkstra_forward_dist,NULL, thread_arg->paths[path_id]);
+        dijkstra_backward(thread_arg->graph, thread_arg->nb_vertices, &dijkstra_backward_dist, NULL, thread_arg->paths[path_id]);
 
         for (uint32_t edge_id = 0; edge_id < thread_arg->nb_edges; edge_id++)
         {
@@ -39,9 +39,9 @@ void *compute_optimize_for_budget_threaded(void *arg)
             if (edge_is_in_visibilite(thread_arg->paths[path_id], thread_arg->edge_array[edge_id]) && (thread_arg->edge_array[edge_id]->dist != thread_arg->edge_array[edge_id]->danger))
             {
 
-                new_djikstra_cost = updated_dist(thread_arg->edge_array[edge_id], thread_arg->paths[path_id], djikstra_forward_dist, djikstra_backward_dist);
+                new_dijkstra_cost = updated_dist(thread_arg->edge_array[edge_id], thread_arg->paths[path_id], dijkstra_forward_dist, dijkstra_backward_dist);
 
-                cost_difference = djikstra_cost - new_djikstra_cost;
+                cost_difference = dijkstra_cost - new_dijkstra_cost;
                 if (cost_difference > 0)
                 {
                     // could be improved by creating a mutex for each edge
@@ -52,8 +52,8 @@ void *compute_optimize_for_budget_threaded(void *arg)
             }
         }
     }
-    free(djikstra_backward_dist);
-    free(djikstra_forward_dist);
+    free(dijkstra_backward_dist);
+    free(dijkstra_forward_dist);
     return (void *)OK;
 }
 

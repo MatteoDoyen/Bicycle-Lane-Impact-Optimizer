@@ -14,7 +14,7 @@ The solution then "improves" a road, recalculate the paths who have the said roa
 
 ### How to calculate the "costs" of a path ?
 We use the dijkstra algorithm to find the shortest path between the origin and the destination of a path, the algorithm only compute a limited graph (only includes the road in the visibility of the paths).
-The cost function of djikstra is :
+The cost function of dijkstra is :
 ```
 alpha * distance + (alpha-1)*danger
 ```

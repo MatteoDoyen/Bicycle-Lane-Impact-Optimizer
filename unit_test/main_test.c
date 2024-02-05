@@ -3,7 +3,7 @@
 #include "unity.h"
 #include "config.h"
 #include "compute_edges_pthread.h"
-#include "../header/djikstra_omp.h"
+#include "../header/dijkstra_omp.h"
 #include "util.h"
 
 #define CONFIG_FILE_PATH "./conf_test/conf_unit_test.json"
@@ -44,7 +44,7 @@ void test_parallel_speed(void){
     clock_gettime(CLOCK_MONOTONIC, &start);
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        djikstra_backward(graph, nb_vertices, &dist_array, NULL, paths[i]);
+        dijkstra_backward(graph, nb_vertices, &dist_array, NULL, paths[i]);
     }
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_time_single = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
@@ -52,7 +52,7 @@ void test_parallel_speed(void){
     clock_gettime(CLOCK_MONOTONIC, &start);
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        djikstra_backward_small_graph_omp(graph, nb_vertices, &dist_array, NULL, paths[i]);
+        dijkstra_backward_small_graph_omp(graph, nb_vertices, &dist_array, NULL, paths[i]);
     }
     clock_gettime(CLOCK_MONOTONIC, &end);
     elapsed_time_parallel = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
@@ -265,7 +265,7 @@ void test_vertices_in_array_scaling(void)
     free(edges);
 }
 
-void test_djikstra_forward_vs_backward_path(void)
+void test_dijkstra_forward_vs_backward_path(void)
 {
     vertex_t **graph;
     edge_t **edge_array;
@@ -294,11 +294,11 @@ void test_djikstra_forward_vs_backward_path(void)
 
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        cost = djikstra_forward(graph, nb_vertices, &dist_array_forward, parent_array_forward, paths[i]);
-        djikstra_backward(graph, nb_vertices, &dist_array_backward, parent_array_backward, paths[i]);
+        cost = dijkstra_forward(graph, nb_vertices, &dist_array_forward, parent_array_forward, paths[i]);
+        dijkstra_backward(graph, nb_vertices, &dist_array_backward, parent_array_backward, paths[i]);
         // used to get the number of element
         // when current=-1 there is no parent and the previous current is equal to the
-        // destination for backward djikstra
+        // destination for backward dijkstra
         current = paths[i]->origin;
 
         while (current != -1)
@@ -311,7 +311,7 @@ void test_djikstra_forward_vs_backward_path(void)
                 TEST_ASSERT_EQUAL_MESSAGE(old_current, parent_array_forward[current], "Incorrect vertex id found");
             }
             else{
-                TEST_ASSERT_EQUAL_MESSAGE(cost,dist_array_forward[old_current],"the distance to the destionation should be the same than the djikstra cost");
+                TEST_ASSERT_EQUAL_MESSAGE(cost,dist_array_forward[old_current],"the distance to the destionation should be the same than the dijkstra cost");
             }
         }
     }
@@ -325,7 +325,7 @@ void test_djikstra_forward_vs_backward_path(void)
     free_config(&config);
 }
 
-void test_djikstra_forward_vs_backward_cost(void)
+void test_dijkstra_forward_vs_backward_cost(void)
 {
     vertex_t **graph;
     edge_t **edge_array;
@@ -350,10 +350,10 @@ void test_djikstra_forward_vs_backward_cost(void)
 
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        // cost_forward = djikstra_forward(graph, nb_vertices, &dist_array_forward, NULL, paths[i]);
-        cost_forward = djikstra_backward(graph, nb_vertices, &dist_array_forward, NULL, paths[i]);
-        cost_backward = djikstra_backward_small_graph_omp(graph, nb_vertices, &dist_array_backward, NULL, paths[i]);
-        // cost_backward = djikstra_backward(graph, nb_vertices, &dist_array_backward, NULL, paths[i]);
+        // cost_forward = dijkstra_forward(graph, nb_vertices, &dist_array_forward, NULL, paths[i]);
+        cost_forward = dijkstra_backward(graph, nb_vertices, &dist_array_forward, NULL, paths[i]);
+        cost_backward = dijkstra_backward_small_graph_omp(graph, nb_vertices, &dist_array_backward, NULL, paths[i]);
+        // cost_backward = dijkstra_backward(graph, nb_vertices, &dist_array_backward, NULL, paths[i]);
 
         sprintf(str, "path %d failed, incorrect cps calculated", i);
         TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.001, cost_forward, cost_backward, str);
@@ -367,7 +367,7 @@ void test_djikstra_forward_vs_backward_cost(void)
     free_config(&config);
 }
 
-void test_djikstra_forward_vs_calculated_data_cost(void)
+void test_dijkstra_forward_vs_calculated_data_cost(void)
 {
 
     vertex_t **graph;
@@ -386,8 +386,8 @@ void test_djikstra_forward_vs_calculated_data_cost(void)
     dist_array = calloc(nb_vertices, sizeof(double));
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        cost = djikstra_forward(graph, nb_vertices, &dist_array, NULL, paths[i]);
-        expected_cost = calc_path_cps(paths[i]->cps_djikstra_dist, paths[i]->cps_djikstra_danger, paths[i]->profil);
+        cost = dijkstra_forward(graph, nb_vertices, &dist_array, NULL, paths[i]);
+        expected_cost = calc_path_cps(paths[i]->cps_dijkstra_dist, paths[i]->cps_dijkstra_danger, paths[i]->profil);
 
         sprintf(str, "path %d failed, incorrect cps calculated", i);
         TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.000001, expected_cost, cost, "str");
@@ -399,7 +399,7 @@ void test_djikstra_forward_vs_calculated_data_cost(void)
     free_config(&config);
 }
 
-void test_djikstra_forward_vs_calculated_data_path(void)
+void test_dijkstra_forward_vs_calculated_data_path(void)
 {
 
     vertex_t **graph;
@@ -427,11 +427,11 @@ void test_djikstra_forward_vs_calculated_data_path(void)
     for (uint32_t path_id = 0; path_id < nb_paths; path_id++)
     {
         sprintf(str, "path %d failed", path_id);
-        djikstra_forward(graph, nb_vertices, &dist_array, parents_array, paths[path_id]);
+        dijkstra_forward(graph, nb_vertices, &dist_array, parents_array, paths[path_id]);
         current = paths[path_id]->destination;
-        vertex_index = paths[path_id]->nb_djikstra_sp-1;
+        vertex_index = paths[path_id]->nb_dijkstra_sp-1;
         while(current!=-1 && (vertex_index >= 0)){
-            TEST_ASSERT_EQUAL_MESSAGE(current, paths[path_id]->djikstra_sp[vertex_index], str);
+            TEST_ASSERT_EQUAL_MESSAGE(current, paths[path_id]->dijkstra_sp[vertex_index], str);
             current = parents_array[current];
             vertex_index--;
         }
@@ -503,10 +503,10 @@ int main(void)
     RUN_TEST(test_parallel_speed);
     // RUN_TEST(test_cost_function);
     // RUN_TEST(test_min_distance);
-    // RUN_TEST(test_djikstra_forward_vs_calculated_data_cost);
-    // RUN_TEST(test_djikstra_forward_vs_calculated_data_path);
-    // RUN_TEST(test_djikstra_forward_vs_backward_path);
-    // RUN_TEST(test_djikstra_forward_vs_backward_cost);
+    // RUN_TEST(test_dijkstra_forward_vs_calculated_data_cost);
+    // RUN_TEST(test_dijkstra_forward_vs_calculated_data_path);
+    // RUN_TEST(test_dijkstra_forward_vs_backward_path);
+    // RUN_TEST(test_dijkstra_forward_vs_backward_cost);
     // RUN_TEST(test_vertices_in_array_scaling);
     // RUN_TEST(test_vertices_out_array_scaling);
     // RUN_TEST(test_get_edges_to_optimize_for_budget_thread_vs_single);

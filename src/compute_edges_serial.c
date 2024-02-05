@@ -58,8 +58,8 @@ int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_
     *budget_left = config->budget;
     int32_t edge_id_to_optimize;
     long double old_danger;
-    double *djikstra_backward_dist, *djikstra_forward_dist;
-    long double new_djikstra_cost, djikstra_cost, cost_difference;
+    double *dijkstra_backward_dist, *dijkstra_forward_dist;
+    long double new_dijkstra_cost, dijkstra_cost, cost_difference;
     bool stop = false;
 
     ret_code = get_graph(config, &graph, &edge_array, &nb_vertices, &nb_edges);
@@ -75,23 +75,23 @@ int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_
         return ret_code;
     }
 
-    djikstra_backward_dist = calloc(nb_vertices, sizeof(double));
-    if (djikstra_backward_dist == NULL)
+    dijkstra_backward_dist = calloc(nb_vertices, sizeof(double));
+    if (dijkstra_backward_dist == NULL)
     {
         free_edge(edge_array, nb_edges);
         free_graph(graph, nb_vertices);
         free_paths(paths, nb_paths);
-        fprintf(stderr, "Memory allocation failed for djikstra_backward_dist array\n");
+        fprintf(stderr, "Memory allocation failed for dijkstra_backward_dist array\n");
         return MEMORY_ALLOC_ERROR;
     }
-    djikstra_forward_dist = calloc(nb_vertices, sizeof(double));
-    if (djikstra_forward_dist == NULL)
+    dijkstra_forward_dist = calloc(nb_vertices, sizeof(double));
+    if (dijkstra_forward_dist == NULL)
     {
         free_edge(edge_array, nb_edges);
         free_graph(graph, nb_vertices);
         free_paths(paths, nb_paths);
-        free(djikstra_backward_dist);
-        fprintf(stderr, "Memory allocation failed for djikstra_forward_dist array\n");
+        free(dijkstra_backward_dist);
+        fprintf(stderr, "Memory allocation failed for dijkstra_forward_dist array\n");
         return MEMORY_ALLOC_ERROR;
     }
 
@@ -101,8 +101,8 @@ int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_
         free_edge(edge_array, nb_edges);
         free_graph(graph, nb_vertices);
         free_paths(paths, nb_paths);
-        free(djikstra_forward_dist);
-        free(djikstra_backward_dist);
+        free(dijkstra_forward_dist);
+        free(dijkstra_backward_dist);
         fprintf(stderr, "Memory allocation failed for impact array\n");
         return MEMORY_ALLOC_ERROR;
     }
@@ -120,8 +120,8 @@ int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_
         free_graph(graph, nb_vertices);
         free_paths(paths, nb_paths);
         free(impact);
-        free(djikstra_forward_dist);
-        free(djikstra_backward_dist);
+        free(dijkstra_forward_dist);
+        free(dijkstra_backward_dist);
         fprintf(stderr, "Memory allocation failed for cost_diff_array array\n");
         return MEMORY_ALLOC_ERROR;
     }
@@ -138,10 +138,10 @@ int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_
             }
             impact[path_id] = false;
 
-            //  calculating the djikstra path backward and forward allows for
+            //  calculating the dijkstra path backward and forward allows for
             //  a much faster computing of the impact of the improvement of an edge
-            djikstra_cost = djikstra_backward(graph, nb_vertices, &djikstra_backward_dist, NULL, paths[path_id]);
-            djikstra_forward(graph, nb_vertices, &djikstra_forward_dist, NULL, paths[path_id]);
+            dijkstra_cost = dijkstra_backward(graph, nb_vertices, &dijkstra_backward_dist, NULL, paths[path_id]);
+            dijkstra_forward(graph, nb_vertices, &dijkstra_forward_dist, NULL, paths[path_id]);
 
             for (uint32_t edge_id = 0; edge_id < nb_edges; edge_id++)
             {
@@ -158,12 +158,12 @@ int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_
                     old_danger = edge_array[edge_id]->danger;
                     edge_array[edge_id]->danger = edge_array[edge_id]->dist;
 
-                    new_djikstra_cost = updated_dist(edge_array[edge_id], paths[path_id], djikstra_forward_dist, djikstra_backward_dist);
+                    new_dijkstra_cost = updated_dist(edge_array[edge_id], paths[path_id], dijkstra_forward_dist, dijkstra_backward_dist);
 
                     // unoptimize the edge
                     edge_array[edge_id]->danger = old_danger;
 
-                    cost_difference = djikstra_cost - new_djikstra_cost;
+                    cost_difference = dijkstra_cost - new_dijkstra_cost;
                     if (cost_difference > 0)
                     {
                         add_double_unsigned_list_t(&cost_diff_array[path_id], edge_id, cost_difference);
@@ -193,8 +193,8 @@ int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_
             if (ret_code != OK)
             {
                 free(impact);
-                free(djikstra_backward_dist);
-                free(djikstra_forward_dist);
+                free(dijkstra_backward_dist);
+                free(dijkstra_forward_dist);
                 free_edge(edge_array, nb_edges);
                 free_graph(graph, nb_vertices);
                 free_paths(paths, nb_paths);
@@ -206,8 +206,8 @@ int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_
         }
     }
     free(impact);
-    free(djikstra_backward_dist);
-    free(djikstra_forward_dist);
+    free(dijkstra_backward_dist);
+    free(dijkstra_forward_dist);
     free_edge(edge_array, nb_edges);
     free_graph(graph, nb_vertices);
     free_paths(paths, nb_paths);

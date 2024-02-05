@@ -107,9 +107,9 @@ int get_paths(cifre_conf_t *conf,path_t ***paths_ref, uint32_t *nb_paths)
             return ret_code;
         }
 
-        paths[id_offset]->cps_djikstra_danger = atof(csv_matrix[i][conf->path_indexes.danger_shortest_path]);
-        paths[id_offset]->cps_djikstra_dist = atof(csv_matrix[i][conf->path_indexes.distance_shortest_path]);
-        ret_code = parseJsonIntegerArray(csv_matrix[i][conf->path_indexes.shortest_path], &paths[id_offset]->djikstra_sp, &paths[id_offset]->nb_djikstra_sp);
+        paths[id_offset]->cps_dijkstra_danger = atof(csv_matrix[i][conf->path_indexes.danger_shortest_path]);
+        paths[id_offset]->cps_dijkstra_dist = atof(csv_matrix[i][conf->path_indexes.distance_shortest_path]);
+        ret_code = parseJsonIntegerArray(csv_matrix[i][conf->path_indexes.shortest_path], &paths[id_offset]->dijkstra_sp, &paths[id_offset]->nb_dijkstra_sp);
         if (ret_code != OK)
         {
             return ret_code;
@@ -125,7 +125,7 @@ void free_paths(path_t **paths, uint32_t nb_paths)
 
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        free(paths[i]->djikstra_sp);
+        free(paths[i]->dijkstra_sp);
         free(paths[i]->visibilite);
         free(paths[i]->chemin);
         free(paths[i]);

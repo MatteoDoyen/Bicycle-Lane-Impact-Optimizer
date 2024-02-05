@@ -40,8 +40,8 @@ int get_edges_to_optimize_for_budget_omp(cifre_conf_t *config, long double *budg
     uint32_t nb_vertices, nb_edges, nb_paths;
     long double budget_left = config->budget;
     int32_t edge_id_to_optimize;
-    double *djikstra_backward_dist, *djikstra_forward_dist;
-    long double new_djikstra_cost, djikstra_cost, cost_difference;
+    double *dijkstra_backward_dist, *dijkstra_forward_dist;
+    long double new_dijkstra_cost, dijkstra_cost, cost_difference;
     bool stop = false;
 
     ret_code = get_graph(config, &graph, &edge_array, &nb_vertices, &nb_edges);
@@ -87,10 +87,10 @@ int get_edges_to_optimize_for_budget_omp(cifre_conf_t *config, long double *budg
     {
 // used to know the cost difference, the optimization of the edge would
 // bring for the path where the edge is in the visibility
-#pragma omp parallel shared(nb_paths,impact, graph, nb_vertices, paths,edge_array,cost_diff_array) private(djikstra_forward_dist, djikstra_backward_dist,djikstra_cost, new_djikstra_cost, cost_difference)
+#pragma omp parallel shared(nb_paths,impact, graph, nb_vertices, paths,edge_array,cost_diff_array) private(dijkstra_forward_dist, dijkstra_backward_dist,dijkstra_cost, new_dijkstra_cost, cost_difference)
 {
-        djikstra_forward_dist = calloc(nb_vertices, sizeof(double));
-        djikstra_backward_dist = calloc(nb_vertices, sizeof(double));
+        dijkstra_forward_dist = calloc(nb_vertices, sizeof(double));
+        dijkstra_backward_dist = calloc(nb_vertices, sizeof(double));
 #pragma omp for
         for (uint32_t path_id = 0; path_id < nb_paths; path_id++)
         {
@@ -100,10 +100,10 @@ int get_edges_to_optimize_for_budget_omp(cifre_conf_t *config, long double *budg
             }
             impact[path_id] = false;
 
-            //  calculating the djikstra path backward and forward allows for
+            //  calculating the dijkstra path backward and forward allows for
             //  a much faster computing of the impact of the improvement of an edge
-            djikstra_cost = djikstra_backward(graph, nb_vertices, &djikstra_backward_dist, NULL, paths[path_id]);
-            djikstra_forward(graph, nb_vertices, &djikstra_forward_dist, NULL, paths[path_id]);
+            dijkstra_cost = dijkstra_backward(graph, nb_vertices, &dijkstra_backward_dist, NULL, paths[path_id]);
+            dijkstra_forward(graph, nb_vertices, &dijkstra_forward_dist, NULL, paths[path_id]);
 
             for (uint32_t edge_id = 0; edge_id < nb_edges; edge_id++)
             {
@@ -116,9 +116,9 @@ int get_edges_to_optimize_for_budget_omp(cifre_conf_t *config, long double *budg
                 if (edge_is_in_visibilite(paths[path_id], edge_array[edge_id]) && (edge_array[edge_id]->dist != edge_array[edge_id]->danger))
                 {
 
-                    new_djikstra_cost = updated_dist(edge_array[edge_id], paths[path_id], djikstra_forward_dist, djikstra_backward_dist);
+                    new_dijkstra_cost = updated_dist(edge_array[edge_id], paths[path_id], dijkstra_forward_dist, dijkstra_backward_dist);
 
-                    cost_difference = djikstra_cost - new_djikstra_cost;
+                    cost_difference = dijkstra_cost - new_dijkstra_cost;
                     if (cost_difference > 0)
                     {
                         #pragma omp critical
@@ -127,8 +127,8 @@ int get_edges_to_optimize_for_budget_omp(cifre_conf_t *config, long double *budg
                 }
             }
         }
-        free(djikstra_forward_dist);
-        free(djikstra_backward_dist);
+        free(dijkstra_forward_dist);
+        free(dijkstra_backward_dist);
 #pragma omp barrier
     }
     edge_id_to_optimize = -1;

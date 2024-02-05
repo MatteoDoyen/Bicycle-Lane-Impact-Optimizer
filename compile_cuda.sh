@@ -1,0 +1,1 @@
+nvcc src/dijkstra_cuda.cu src/edge.c src/path.c src/util.c src/cJSON.c src/dijkstra.c src/main.cu src/config.c -o test_cuda

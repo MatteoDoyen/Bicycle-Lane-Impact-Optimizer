@@ -3,6 +3,12 @@
 #include "../header/config.h"
 #include <stdbool.h>
 #include <stdint.h>
+
+typedef struct{
+    double distance;
+    double danger;
+}vertex_cuda_t;
+
 // Forward declaration of edge_t struct
 struct edge_t;
 
@@ -37,6 +43,7 @@ typedef struct edge_t {
 
 #define DEFAULT_NEIGHBOURS 20 // by experiences it seems that there is rarely ever a node with more than 20 neighbours
 
+int get_graph_cuda(cifre_conf_t * config,vertex_cuda_t **graph_ref, uint32_t *num_vertices);
 edge_t* get_edge_if_exist(vertex_t ** graph,uint32_t vertex_source, uint32_t vertex_dest);
 uint32_t get_nb_node(char*** csv_matrix, uint32_t nb_row);
 int create_edge(uint32_t id,edge_t **new_edge_ref, double dist, double danger, vertex_t *pred, vertex_t *succ);

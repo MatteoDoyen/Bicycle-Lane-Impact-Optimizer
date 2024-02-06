@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <float.h>
 
+
+
 uint32_t get_nb_node(char ***csv_matrix, uint32_t nb_row)
 {
     uint32_t numNode = 0;
@@ -119,6 +121,51 @@ int get_graph(cifre_conf_t * config,vertex_t ***graph_ref, edge_t ***edge_array,
         }
     }
 
+    freeCSVMatrix(csv_matrix, nb_row, nb_col);
+    return OK;
+}
+
+int get_graph_cuda(cifre_conf_t * config,vertex_cuda_t **graph_ref, uint32_t *num_vertices)
+{
+    // printf("lets go\n");
+    unsigned int node_i, node_j;
+    uint32_t nb_col, nb_row;
+    char ***csv_matrix;
+    int ret_code;
+    ret_code = readCSVFile(config->graph_file_path, &csv_matrix, &nb_row, &nb_col, config->csv_delimiter);
+    if (ret_code != OK)
+    {
+        return ret_code;
+    }
+    // Assuming the maximum node index found is the number of node and that all node index are contiguous
+    *num_vertices = get_nb_node(csv_matrix, nb_row);
+    // printf("before\n");
+    *graph_ref = (vertex_cuda_t *)calloc((*num_vertices)*(*num_vertices), sizeof(vertex_cuda_t));
+    // *graph_ref = (vertex_cuda_t **)calloc((*num_vertices)*(*num_vertices), sizeof(vertex_cuda_t *));
+    vertex_cuda_t *graph = *graph_ref;
+    // The number of rows is the exact number of edges in the csv file
+    // printf("after\n");
+    // Initialize each node
+
+    for (uint64_t i = 0; i < (*num_vertices)*(*num_vertices); i++)
+    {
+        graph[i].danger = DBL_MAX;
+        graph[i].distance = DBL_MAX;
+    }
+
+    for (uint32_t i = 1; i < nb_row; i++)
+    {
+        // printf("loop\n");
+        node_i = atoi(csv_matrix[i][G_NODEI_INDEX]);
+        node_j = atoi(csv_matrix[i][G_NODEJ_INDEX]);
+        // if(graph[node_i]==NULL){
+        //     graph[node_i] = calloc(*num_vertices, sizeof(vertex_cuda_t));
+        // }
+        graph[(node_i * (*num_vertices)) +node_j].distance = atof(csv_matrix[i][G_DISTANCE_INDEX]);
+        graph[(node_i * (*num_vertices)) +node_j].danger = atof(csv_matrix[i][G_DANGER_INDEX]);
+        // printf("ni %d nj %d dist %f\n",node_i,node_j,graph[(node_i * (*num_vertices)) +node_j].distance);
+        // break;
+    }
     freeCSVMatrix(csv_matrix, nb_row, nb_col);
     return OK;
 }

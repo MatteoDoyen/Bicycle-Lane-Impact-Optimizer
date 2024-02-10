@@ -2,9 +2,15 @@
 #include <stdlib.h>
 #include "../header/util.h"
 #include "../header/compute_edges_pthread.h"
+#include <sys/stat.h>
+#include <sys/types.h>
 
-void save_selected_edges(double_unsigned_list_t *head,char * file_path)
+
+void save_selected_edges(double_unsigned_list_t *head,char * directory,char * file_path)
 {
+    //create result directory if not exists
+    mkdir(directory, 0777);
+
     FILE * file = fopen(file_path,"w");
     if(file==NULL){
         fprintf(stderr, "Error opening file: %s\n", file_path);

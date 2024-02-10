@@ -61,11 +61,11 @@ int main(int argc, char const *argv[])
     copy_budget_used = budget_used;
     budget_used = config.budget;
     pthread_join(progressBar, NULL);
-    save_selected_edges(selected_edges, result_file_name);
+    save_selected_edges(selected_edges,RESULT_DIRECTORY, result_file_name);
     free_double_unsigned_list_t(selected_edges);
 
-    printf("budget used : %Lf\n", copy_budget_used);
-    printf("Time taken by myThreadedFunction: %f seconds\n", elapsed_time_thread);
+    printf("Budget used     : %.4Lf/%.4Lf\n", copy_budget_used,config.budget);
+    printf("Time taken      : %f seconds\n", elapsed_time_thread);
     printf("Result saved to : %s\n", result_file_name);
 
     free_config(&config);

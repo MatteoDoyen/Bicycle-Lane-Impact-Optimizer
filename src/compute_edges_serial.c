@@ -157,7 +157,7 @@ int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_
                 }
                 //  if the edge's vertexes are in the visibility of the path
                 //  and the edge is not already optimized
-                if (edge_is_in_visibilite(paths[path_id], edge_array[edge_id]) && (edge_array[edge_id]->dist != edge_array[edge_id]->danger))
+                if (edge_is_in_visibilite_2(paths[path_id], edge_array[edge_id]) && (edge_array[edge_id]->dist != edge_array[edge_id]->danger))
                 {
 
                     // optimizing an edge is making its danger equal to its distance
@@ -188,7 +188,7 @@ int get_edges_to_optimize_for_budget(cifre_conf_t * config, long double *budget_
         {
             for (uint32_t path_id = 0; path_id < nb_paths; path_id++)
             {
-                if (edge_is_in_visibilite(paths[path_id], edge_array[edge_id_to_optimize]))
+                if (edge_is_in_visibilite_2(paths[path_id], edge_array[edge_id_to_optimize]))
                 {
                     impact[path_id] = true;
                     free_double_unsigned_list_t(cost_diff_array[path_id]);

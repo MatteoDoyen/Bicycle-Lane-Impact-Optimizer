@@ -85,7 +85,7 @@ double dijkstra_backward_full_graph_omp(struct vertex_t **graph, int nb_vertices
             dest_vertex_id = current_edge->pred->id;
             current_cost = cost_function(&path->profil, &current_edge->dist, &current_edge->danger);
 
-            // if(!vertex_is_in_visibilite(path, dest_vertex_id)){
+            // if(!vertex_is_in_visibilite_2(path, dest_vertex_id)){
             //     continue;
             // }
             // #pragma omp critical
@@ -165,7 +165,7 @@ double dijkstra_backward_small_graph_omp(struct vertex_t **graph, int nb_vertice
             current_cost = cost_function(&path->profil, &current_edge->dist, &current_edge->danger);
 
             #pragma omp critical
-            if (vertex_is_in_visibilite(path, dest_vertex_id) && !markedVertex[dest_vertex_id] && ((dist_array[min_dist_index] + current_cost) < dist_array[dest_vertex_id]))
+            if (vertex_is_in_visibilite_2(path, dest_vertex_id) && !markedVertex[dest_vertex_id] && ((dist_array[min_dist_index] + current_cost) < dist_array[dest_vertex_id]))
             {
                 dist_array[dest_vertex_id] = dist_array[min_dist_index] + current_cost;
                 if (parents != NULL)

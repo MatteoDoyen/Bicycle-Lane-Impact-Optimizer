@@ -75,7 +75,7 @@ double dijkstra_forward(struct vertex_t **graph, int nb_vertices, double **dist_
             current_cost = cost_function(&path->profil, &current_edge->dist, &current_edge->danger);
 
             dest_vertex_id = current_edge->succ->id;
-            if (vertex_is_in_visibilite(path, dest_vertex_id) && !markedVertex[dest_vertex_id] && ((dist_array[min_dist_index] + current_cost) < dist_array[dest_vertex_id]))
+            if (vertex_is_in_visibilite_2(path, dest_vertex_id) && !markedVertex[dest_vertex_id] && ((dist_array[min_dist_index] + current_cost) < dist_array[dest_vertex_id]))
             {
                 dist_array[dest_vertex_id] = dist_array[min_dist_index] + current_cost;
                 if (parents != NULL)
@@ -155,7 +155,7 @@ double dijkstra_backward(struct vertex_t **graph, int nb_vertices, double **dist
             dest_vertex_id = current_edge->pred->id;
             current_cost = cost_function(&path->profil, &current_edge->dist, &current_edge->danger);
 
-            if (vertex_is_in_visibilite(path, dest_vertex_id) && !markedVertex[dest_vertex_id] && ((dist_array[min_dist_index] + current_cost) < dist_array[dest_vertex_id]))
+            if (vertex_is_in_visibilite_2(path, dest_vertex_id) && !markedVertex[dest_vertex_id] && ((dist_array[min_dist_index] + current_cost) < dist_array[dest_vertex_id]))
             {
                 dist_array[dest_vertex_id] = dist_array[min_dist_index] + current_cost;
                 if (parents != NULL)
@@ -223,7 +223,7 @@ double dijkstra_backward_full_graph(struct vertex_t **graph, int nb_vertices, do
             dest_vertex_id = current_edge->pred->id;
             current_cost = cost_function(&path->profil, &current_edge->dist, &current_edge->danger);
 
-            // if(!vertex_is_in_visibilite(path, dest_vertex_id)){
+            // if(!vertex_is_in_visibilite_2(path, dest_vertex_id)){
             //     continue;
             // }
             if (!markedVertex[dest_vertex_id] && ((dist_array[min_dist_index] + current_cost) < dist_array[dest_vertex_id]))

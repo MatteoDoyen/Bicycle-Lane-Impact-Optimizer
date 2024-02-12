@@ -126,6 +126,15 @@ void freeCSVMatrix(char ***matrix, int32_t numRows, int32_t numCols)
     free(matrix);
 }
 
+int parseAndSortJsonIntegerArray(const char *json, unsigned int **result_array_ref, unsigned int *nb_element){
+    int ret = parseJsonIntegerArray(json, result_array_ref,nb_element);
+    if(ret!=OK){
+        return ret;
+    }
+    quickSort(*result_array_ref, 0, (*nb_element)-1);
+    return OK;
+}
+
 int parseJsonIntegerArray(const char *json, unsigned int **result_array_ref, unsigned int *nb_element)
 {
     // fprintf(stderr,"eueueu\n");
@@ -260,4 +269,55 @@ void delete_value_in_unsigned_list(unsigned_list_t **head, unsigned u_value){
             *head = temp->next;
         }
         free(temp);
+}
+
+void swap(unsigned int *a, unsigned int *b) {
+    unsigned int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+int partition(unsigned int arr[], int low, int high) {
+    unsigned int pivot = arr[high];
+    int i = (low - 1);
+    
+    for (int j = low; j <= high - 1; j++) {
+        if (arr[j] < pivot) {
+            i++;
+            swap(&arr[i], &arr[j]);
+        }
+    }
+    swap(&arr[i + 1], &arr[high]);
+    return (i + 1);
+}
+
+void quickSort(unsigned int arr[], int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+        
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
+bool binarySearch(uint32_t *arr, uint32_t size, uint32_t target) {
+    uint32_t low = 0;
+    uint32_t high = size - 1;
+
+    while (low <= high) {
+        uint32_t mid = low + ((high - low) / 2);
+        if(mid >=size || mid <0){
+            return false;
+        }
+        // fprintf(stderr,"taille %u ind %u\n",size,mid);
+        if (arr[mid] == target) {
+            return true;
+        } else if (arr[mid] < target) {
+            low = mid + 1;
+        } else {
+            high = mid - 1;
+        }
+    }
+
+    return false;
 }

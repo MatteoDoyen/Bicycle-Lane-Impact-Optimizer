@@ -12,6 +12,11 @@ edge_t* get_edge_if_exist(vertex_t ** graph,uint32_t vertex_source, uint32_t ver
     return NULL;
 }
 
+
+bool vertex_is_in_visibilite_2(path_t *paths, uint32_t vertex_id) {
+    return binarySearch(paths->visibilite, paths->nb_visibilite, vertex_id);
+}
+
 bool vertex_is_in_visibilite(path_t *paths, uint32_t vertex_id)
 {
 
@@ -23,6 +28,15 @@ bool vertex_is_in_visibilite(path_t *paths, uint32_t vertex_id)
         }
     }
     return false;
+}
+
+bool edge_is_in_visibilite_2(path_t *paths, edge_t *edge)
+{
+
+    bool succ_in = binarySearch(paths->visibilite, paths->nb_visibilite, edge->succ->id);
+    bool pred_in = binarySearch(paths->visibilite, paths->nb_visibilite, edge->pred->id);
+
+    return (succ_in && pred_in);
 }
 
 bool edge_is_in_visibilite(path_t *paths, edge_t *edge)
@@ -95,7 +109,8 @@ int get_paths(cifre_conf_t *conf,path_t ***paths_ref, uint32_t *nb_paths)
         paths[id_offset]->profil = atof(csv_matrix[i][conf->path_indexes.profile]);
         paths[id_offset]->origin = atoi(csv_matrix[i][conf->path_indexes.origin]);
         paths[id_offset]->destination = atoi(csv_matrix[i][conf->path_indexes.destination]);
-        ret_code = parseJsonIntegerArray(csv_matrix[i][conf->path_indexes.visibility], &paths[id_offset]->visibilite, &paths[id_offset]->nb_visibilite);
+        //sort the visiblity array so that it we can use Binary Search
+        ret_code = parseAndSortJsonIntegerArray(csv_matrix[i][conf->path_indexes.visibility], &paths[id_offset]->visibilite, &paths[id_offset]->nb_visibilite);
         if (ret_code != OK)
         {
             return ret_code;

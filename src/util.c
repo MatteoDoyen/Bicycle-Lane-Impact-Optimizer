@@ -131,7 +131,7 @@ int parseAndSortJsonIntegerArray(const char *json, unsigned int **result_array_r
     if(ret!=OK){
         return ret;
     }
-    quickSort(*result_array_ref, 0, (*nb_element)-1);
+    quick_sort(*result_array_ref, 0, (*nb_element)-1);
     return OK;
 }
 
@@ -291,25 +291,24 @@ int partition(unsigned int arr[], int low, int high) {
     return (i + 1);
 }
 
-void quickSort(unsigned int arr[], int low, int high) {
+void quick_sort(unsigned int arr[], int low, int high) {
     if (low < high) {
         int pi = partition(arr, low, high);
         
-        quickSort(arr, low, pi - 1);
-        quickSort(arr, pi + 1, high);
+        quick_sort(arr, low, pi - 1);
+        quick_sort(arr, pi + 1, high);
     }
 }
 
-bool binarySearch(uint32_t *arr, uint32_t size, uint32_t target) {
+bool binary_search(uint32_t *arr, uint32_t size, uint32_t target) {
     uint32_t low = 0;
     uint32_t high = size - 1;
 
     while (low <= high) {
         uint32_t mid = low + ((high - low) / 2);
-        if(mid >=size || mid <0){
+        if(mid >=size){
             return false;
         }
-        // fprintf(stderr,"taille %u ind %u\n",size,mid);
         if (arr[mid] == target) {
             return true;
         } else if (arr[mid] < target) {

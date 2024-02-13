@@ -38,9 +38,9 @@ uint32_t get_nb_list_t(char*** csv_matrix, uint32_t nb_row);
 void freeCSVMatrix(char ***matrix, int numRows, int numCols);
 int parseJsonIntegerArray(const char *json,unsigned int ** result_array_ref,  unsigned int * nb_element);
 
-bool binarySearch(uint32_t *arr, uint32_t size, uint32_t target);
+bool binary_search(uint32_t *arr, uint32_t size, uint32_t target);
 int parseAndSortJsonIntegerArray(const char *json, unsigned int **result_array_ref, unsigned int *nb_element);
-void quickSort(unsigned int arr[], int low, int high);
+void quick_sort(unsigned int arr[], int low, int high);
 int partition(unsigned int arr[], int low, int high);
 void swap(unsigned int *a, unsigned int *b);
 

@@ -56,10 +56,8 @@ typedef struct
 
 int get_paths(cifre_conf_t *conf, path_t ***paths, uint32_t *nb_paths);
 bool edge_is_in_visibilite(path_t *paths, edge_t *edge);
-bool edge_is_in_visibilite_2(path_t *paths, edge_t *edge);
 bool troncon_is_in_path(path_t *paths, edge_t *edge);
 bool vertex_is_in_visibilite(path_t *paths, uint32_t vertex_id);
-bool vertex_is_in_visibilite_2(path_t *paths, uint32_t vertex_id);
 void free_paths(path_t** paths,uint32_t nb_paths);
 
 #endif // PATH_H

@@ -13,55 +13,16 @@ edge_t* get_edge_if_exist(vertex_t ** graph,uint32_t vertex_source, uint32_t ver
 }
 
 
-bool vertex_is_in_visibilite_2(path_t *paths, uint32_t vertex_id) {
-    return binarySearch(paths->visibilite, paths->nb_visibilite, vertex_id);
-}
-
-bool vertex_is_in_visibilite(path_t *paths, uint32_t vertex_id)
-{
-
-    for (uint32_t i = 0; i < paths->nb_visibilite; i++)
-    {
-        if (paths->visibilite[i] == vertex_id)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool edge_is_in_visibilite_2(path_t *paths, edge_t *edge)
-{
-
-    bool succ_in = binarySearch(paths->visibilite, paths->nb_visibilite, edge->succ->id);
-    bool pred_in = binarySearch(paths->visibilite, paths->nb_visibilite, edge->pred->id);
-
-    return (succ_in && pred_in);
+bool vertex_is_in_visibilite(path_t *paths, uint32_t vertex_id) {
+    return binary_search(paths->visibilite, paths->nb_visibilite, vertex_id);
 }
 
 bool edge_is_in_visibilite(path_t *paths, edge_t *edge)
 {
 
-    bool succ_in = false;
-    bool pred_in = false;
+    bool succ_in = binary_search(paths->visibilite, paths->nb_visibilite, edge->succ->id);
+    bool pred_in = binary_search(paths->visibilite, paths->nb_visibilite, edge->pred->id);
 
-    for (unsigned int i = 0; i < paths->nb_visibilite; i++)
-    {
-        // if the id of the successor vertex or the predecessor vertex is in the visibility array
-        // then returns true
-        if (paths->visibilite[i] == edge->succ->id)
-        {
-            succ_in = true;
-        }
-        else if (paths->visibilite[i] == edge->pred->id)
-        {
-            pred_in = true;
-        }
-        if (pred_in && succ_in)
-        {
-            break;
-        }
-    }
     return (succ_in && pred_in);
 }
 

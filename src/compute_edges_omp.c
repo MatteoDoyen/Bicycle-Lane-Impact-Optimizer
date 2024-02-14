@@ -83,22 +83,29 @@ int get_edges_to_optimize_for_budget_omp(cifre_conf_t *config, long double *budg
         fprintf(stderr, "Memory allocation failed for cost_diff_array array\n");
         return MEMORY_ALLOC_ERROR;
     }
+    unsigned_list_t ** path_list;
+    get_path_list(config,paths,nb_paths,&path_list,impact);
+   
+
     omp_set_num_threads(config->thread_number);
+    unsigned_list_t * current_path;
+    uint32_t t_it;
+    uint32_t path_id;
     while (!stop)
     {
+        // printf("let's go\n");
 // used to know the cost difference, the optimization of the edge would
 // bring for the path where the edge is in the visibility
-#pragma omp parallel shared(nb_paths,impact, graph, nb_vertices, paths,edge_array,cost_diff_array) private(dijkstra_forward_dist, dijkstra_backward_dist,dijkstra_cost, new_dijkstra_cost, cost_difference)
+#pragma omp parallel shared(path_list,nb_paths,impact, graph, nb_vertices, paths,edge_array,cost_diff_array) private(path_id,t_it,current_path,dijkstra_forward_dist, dijkstra_backward_dist,dijkstra_cost, new_dijkstra_cost, cost_difference)
 {
         dijkstra_forward_dist = calloc(nb_vertices, sizeof(double));
         dijkstra_backward_dist = calloc(nb_vertices, sizeof(double));
-#pragma omp for
-        for (uint32_t path_id = 0; path_id < nb_paths; path_id++)
-        {
-            if (!impact[path_id])
-            {
-                continue;
-            }
+        
+        t_it = omp_get_thread_num();
+        current_path = path_list[t_it];
+        // printf("thread number %d sur %d\n", t_it,omp_get_num_threads());
+        while(current_path!=NULL){
+            path_id = current_path->u_value;
             impact[path_id] = false;
 
             //  calculating the dijkstra path backward and forward allows for
@@ -127,10 +134,10 @@ int get_edges_to_optimize_for_budget_omp(cifre_conf_t *config, long double *budg
                     }
                 }
             }
+            current_path = current_path->next;
         }
         free(dijkstra_forward_dist);
         free(dijkstra_backward_dist);
-#pragma omp barrier
     }
     edge_id_to_optimize = -1;
     get_max_edge_to_optimize(cost_diff_array, nb_paths, nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, budget_left);
@@ -162,8 +169,13 @@ int get_edges_to_optimize_for_budget_omp(cifre_conf_t *config, long double *budg
         budget_left = budget_left - edge_array[edge_id_to_optimize]->dist;
         *budget_used = config->budget - budget_left;
         edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
+
+        free_path_list(config,path_list);
+        path_list = NULL;
+        get_path_list(config,paths,nb_paths,&path_list,impact);
     }
 }
+free_path_list(config,path_list);
 free(impact);
 free_edge(edge_array, nb_edges);
 free_graph(graph, nb_vertices);

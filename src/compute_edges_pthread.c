@@ -14,15 +14,14 @@ void *compute_optimize_for_budget_threaded(void *arg)
     {
         return (void *)MEMORY_ALLOC_ERROR;
     }
+
+    unsigned_list_t * current_path = *thread_arg->path_list;
+    uint32_t path_id;
     // by offsetting the loop index with the number of thread, we are sure that no two thread will ever
     // work on the same path
-    for (uint32_t path_id = thread_arg->thread_id; (path_id < thread_arg->nb_paths); path_id += thread_arg->offset)
+    while (current_path!=NULL)
     {
-
-        if (!thread_arg->impact[path_id])
-        {
-            continue;
-        }
+        path_id = current_path->u_value;
         thread_arg->impact[path_id] = false;
         dijkstra_cost = dijkstra_forward(thread_arg->graph, thread_arg->nb_vertices, &dijkstra_forward_dist,NULL, thread_arg->paths[path_id]);
         dijkstra_backward(thread_arg->graph, thread_arg->nb_vertices, &dijkstra_backward_dist, NULL, thread_arg->paths[path_id]);
@@ -32,6 +31,7 @@ void *compute_optimize_for_budget_threaded(void *arg)
 
             if (thread_arg->edge_array[edge_id]->dist > ((double)*thread_arg->budget_left))
             {
+                
                 continue;
             }
             // if the edge's vertexes are in the visibility of the path
@@ -51,6 +51,7 @@ void *compute_optimize_for_budget_threaded(void *arg)
                 }
             }
         }
+        current_path = current_path->next;
     }
     free(dijkstra_backward_dist);
     free(dijkstra_forward_dist);
@@ -116,6 +117,8 @@ int get_edges_to_optimize_for_budget_pthread(cifre_conf_t * config,long double *
         fprintf(stderr, "Memory allocation failed for threads\n");
         goto clean_up_threads;
     }
+    unsigned_list_t ** path_list;
+    get_path_list(config,paths,nb_paths,&path_list,impact);
     for (uint32_t i = 0; i < config->thread_number; i++)
     {
         thread_arg[i] = (thread_arg_t){
@@ -139,6 +142,7 @@ int get_edges_to_optimize_for_budget_pthread(cifre_conf_t * config,long double *
         // bring for the path where the edge is in the visibility
         for (uint32_t i= 0; i < config->thread_number; i++)
         {
+            thread_arg[i].path_list = &path_list[i];
             pthread_create(&threads[i], NULL, compute_optimize_for_budget_threaded, (void *)&thread_arg[i]);
         }
         for (uint32_t i= 0; i < config->thread_number; i++)
@@ -146,7 +150,6 @@ int get_edges_to_optimize_for_budget_pthread(cifre_conf_t * config,long double *
             // wait thread
             pthread_join(threads[i], NULL);
         }
-
         edge_id_to_optimize = -1;
         get_max_edge_to_optimize(cost_diff_array, nb_paths,nb_edges, edge_array, &edge_id_to_optimize, &max_saved_cost, budget_left);
         if (edge_id_to_optimize == -1)
@@ -176,9 +179,14 @@ int get_edges_to_optimize_for_budget_pthread(cifre_conf_t * config,long double *
             budget_left = budget_left - edge_array[edge_id_to_optimize]->dist;
             *budget_used = config->budget - budget_left;
             edge_array[edge_id_to_optimize]->danger = edge_array[edge_id_to_optimize]->dist;
+
+            free_path_list(config,path_list);
+            path_list = NULL;
+            get_path_list(config,paths,nb_paths,&path_list,impact);
         }
     }
 
+    free_path_list(config,path_list);
 clean_up_cost_diff:
     free_cost_diff_array(cost_diff_array,nb_paths);
 clean_up_threads:

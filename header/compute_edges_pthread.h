@@ -18,6 +18,7 @@ typedef struct thread_arg_t
     bool * impact;
     pthread_mutex_t *mutex;
     long double *budget_left;
+    unsigned_list_t **path_list;
 }thread_arg_t;
 
 void *compute_optimize_for_budget_threaded(void *arg);

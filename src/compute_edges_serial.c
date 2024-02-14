@@ -7,6 +7,53 @@
 #include <sys/types.h>
 
 
+int get_path_list(cifre_conf_t * config,path_t **paths,uint32_t nb_paths, unsigned_list_t*** path_list_ref, bool * impact_array){
+
+    uint32_t min_size = INT32_MAX;
+    uint32_t min_index = -1;
+    *path_list_ref = calloc(config->thread_number,sizeof(unsigned_list_t *));
+    unsigned_list_t **path_list = *path_list_ref;
+    uint32_t *paths_size = calloc(config->thread_number,sizeof(uint32_t));
+
+    if(path_list==NULL){
+        return MEMORY_ALLOC_ERROR;
+    }
+    for (uint32_t i = 0; i < config->thread_number; i++)
+    {
+        paths_size[i] = 0;
+        path_list[i] = NULL;
+    }
+
+    for (uint32_t path_id = 0; path_id < nb_paths; path_id++)
+    {
+        if(!impact_array[path_id]){
+            continue;
+        }
+        for (uint32_t j = 0; j < config->thread_number; j++)
+        {
+            if(paths_size[j]<min_size){
+                min_size = paths_size[j];
+                min_index = j;
+            }
+        }
+        // add the path_id to the list of paths to be looked at by the thread
+        add_unsigned_list_t(&path_list[min_index],path_id);
+        // update the current size of the paths's visibilities for the given thread
+        paths_size[min_index] += paths[path_id]->nb_visibilite;
+        min_size = INT32_MAX;
+    }
+    free(paths_size);
+
+    return OK;
+}
+void free_path_list(cifre_conf_t * config,unsigned_list_t ** path_list){
+    for (uint32_t i = 0; i < config->thread_number; i++)
+    {
+        free_unsigned_list_t(path_list[i]);
+    }
+    free(path_list);
+}
+
 void save_selected_edges(double_unsigned_list_t *head,char * directory,char * file_path)
 {
     //create result directory if not exists

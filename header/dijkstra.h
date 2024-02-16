@@ -1,6 +1,6 @@
 #ifndef dijkstra__H
 #define dijkstra__H
-#include "edge.h"
+#include "graph.h"
 #include "util.h"
 #include "path.h"
 

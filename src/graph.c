@@ -1,4 +1,4 @@
-#include "../header/edge.h"
+#include "../header/graph.h"
 #include "../header/util.h"
 #include <stdio.h>
 #include <stdlib.h>

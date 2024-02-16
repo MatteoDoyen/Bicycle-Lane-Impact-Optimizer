@@ -1,7 +1,7 @@
 #ifndef PATH_H
 #define PATH_H
 
-#include "../header/edge.h"
+#include "../header/graph.h"
 #include "../header/config.h"
 
 #include <stdio.h>

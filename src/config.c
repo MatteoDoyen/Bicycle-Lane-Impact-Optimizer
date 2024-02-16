@@ -4,9 +4,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int set_config(char const *config_file_path,cifre_conf_t *conf_ref)
+int get_config(char const *config_file_path,config_t *conf_ref)
 {
     cJSON *path_indexes_dict;
+    cJSON *graph_indexes_dict;
 
     FILE *fp = fopen(config_file_path, "r");
     if (fp == NULL)
@@ -46,6 +47,21 @@ int set_config(char const *config_file_path,cifre_conf_t *conf_ref)
     get_uint_in_json(path_indexes_dict, "danger_shortest_path", &(*conf_ref).path_indexes.danger_shortest_path);
     get_uint_in_json(path_indexes_dict, "visibility", &(*conf_ref).path_indexes.visibility);
 
+    graph_indexes_dict = cJSON_GetObjectItem(json, "graph_column_indexes");
+    if (!cJSON_IsObject(graph_indexes_dict))
+    {
+        fprintf(stderr, "Error : item should be object\n");
+        cJSON_Delete(json);
+        return JSON_PARSING_ERROR;
+    }
+    get_uint_in_json(graph_indexes_dict, "edge_id", &(*conf_ref).graph_indexes.edge_id);
+    get_uint_in_json(graph_indexes_dict, "node_i", &(*conf_ref).graph_indexes.node_i);
+    get_uint_in_json(graph_indexes_dict, "node_j", &(*conf_ref).graph_indexes.node_j);
+    get_uint_in_json(graph_indexes_dict, "distance", &(*conf_ref).graph_indexes.distance);
+    get_uint_in_json(graph_indexes_dict, "danger", &(*conf_ref).graph_indexes.danger);
+    get_uint_in_json(graph_indexes_dict, "amenagement", &(*conf_ref).graph_indexes.amenagement);
+
+
     get_string_in_json(json, "paths_file_path", &(*conf_ref).paths_file_path);
     get_string_in_json(json, "graph_file_path", &(*conf_ref).graph_file_path);
     get_string_in_json(json, "csv_delimiter", &(*conf_ref).csv_delimiter);
@@ -57,7 +73,7 @@ int set_config(char const *config_file_path,cifre_conf_t *conf_ref)
     return OK;
 }
 
-void free_config(cifre_conf_t *config){
+void free_config(config_t *config){
     free(config->paths_file_path);
     free(config->graph_file_path);
     free(config->csv_delimiter);

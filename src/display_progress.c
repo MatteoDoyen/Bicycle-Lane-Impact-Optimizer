@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <pthread.h>
 
-void* progressBarThread(void* arg) {
+void* progress_bar_thread(void* arg) {
     print_progress_args_t * print_args = (print_progress_args_t *)arg;
     long double currentProgress;
     long double lastProgress = -1;
@@ -12,12 +12,12 @@ void* progressBarThread(void* arg) {
         currentProgress = *print_args->budget_left;
         if (currentProgress != lastProgress) {
             lastProgress = currentProgress;
-            printProgressBar(currentProgress, print_args->total_budget);
+            print_progress_bar(currentProgress, print_args->total_budget);
         }
 
         // Check if the worker thread has completed
         if (currentProgress >= print_args->total_budget) {
-            printProgressBar(print_args->total_budget, print_args->total_budget);
+            print_progress_bar(print_args->total_budget, print_args->total_budget);
             break;
         }
     }
@@ -25,7 +25,7 @@ void* progressBarThread(void* arg) {
     pthread_exit(NULL);
 }
 
-void printProgressBar(double progress, double total) {
+void print_progress_bar(double progress, double total) {
     const int barWidth = 50;
     double percentage = (double)(progress / total);
     int barLength = barWidth * percentage;

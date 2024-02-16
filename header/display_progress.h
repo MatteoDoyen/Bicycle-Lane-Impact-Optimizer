@@ -8,7 +8,7 @@ typedef struct {
     long double *budget_left;
 }print_progress_args_t;
 
-void* progressBarThread(void* arg);
-void printProgressBar(double progress, double total);
+void* progress_bar_thread(void* arg);
+void print_progress_bar(double progress, double total);
 
 #endif // DISPLAY_PROGRESS_H

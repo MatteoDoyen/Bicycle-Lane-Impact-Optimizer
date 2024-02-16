@@ -45,14 +45,14 @@ bool troncon_is_in_path(path_t *paths, edge_t *edge)
     return false;
 }
 
-int get_paths(cifre_conf_t *conf,path_t ***paths_ref, uint32_t *nb_paths)
+int get_paths(config_t *conf,path_t ***paths_ref, uint32_t *nb_paths)
 {
     uint32_t nb_col, nb_row;
     uint32_t id_offset; // to ignore the header row of the csv file
     char ***csv_matrix;
     int ret_code;
 
-    ret_code = readCSVFile(conf->paths_file_path, &csv_matrix, &nb_row, &nb_col, conf->csv_delimiter);
+    ret_code = read_csv_file(conf->paths_file_path, &csv_matrix, &nb_row, &nb_col, conf->csv_delimiter);
     if (ret_code != OK)
     {
         return ret_code;

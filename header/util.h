@@ -33,7 +33,7 @@ int add_unsigned_list_t(unsigned_list_t **head, unsigned u_value);
 void free_unsigned_list_t(unsigned_list_t *head);
 
 
-int readCSVFile(const char *filename,char **** csv_matrix, uint32_t *numRows, uint32_t *numCols, char *delimiter);
+int read_csv_file(const char *filename,char **** csv_matrix, uint32_t *numRows, uint32_t *numCols, char *delimiter);
 uint32_t get_nb_list_t(char*** csv_matrix, uint32_t nb_row);
 void freeCSVMatrix(char ***matrix, int numRows, int numCols);
 int parseJsonIntegerArray(const char *json,unsigned int ** result_array_ref,  unsigned int * nb_element);

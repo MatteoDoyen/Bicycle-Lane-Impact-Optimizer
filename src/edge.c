@@ -7,16 +7,14 @@
 #include <stdlib.h>
 #include <float.h>
 
-
-
-uint32_t get_nb_node(char ***csv_matrix, uint32_t nb_row)
+uint32_t get_nb_node(char ***csv_matrix, uint32_t nb_row, config_t *config)
 {
     uint32_t numNode = 0;
     uint32_t node_i, node_j;
     for (uint32_t i = 1; i < nb_row; i++)
     {
-        node_i = atoi(csv_matrix[i][G_NODEI_INDEX]);
-        node_j = atoi(csv_matrix[i][G_NODEJ_INDEX]);
+        node_i = atoi(csv_matrix[i][config->graph_indexes.node_i]);
+        node_j = atoi(csv_matrix[i][config->graph_indexes.node_j]);
         numNode = node_i > numNode ? node_i : numNode;
         numNode = node_j > numNode ? node_j : numNode;
     }
@@ -67,52 +65,52 @@ int create_edge(uint32_t id, edge_t **new_edge_ref, double dist, double danger, 
 }
 
 // Function to read CSV file and create graph
-int get_graph(cifre_conf_t * config,vertex_t ***graph_ref, edge_t ***edge_array, uint32_t *num_vertices, uint32_t *nb_edges)
+int get_graph(config_t *config, graph_t* graph)
 {
     unsigned int node_i, node_j;
     uint32_t nb_col, nb_row;
     char ***csv_matrix;
     int ret_code;
-    ret_code = readCSVFile(config->graph_file_path, &csv_matrix, &nb_row, &nb_col, config->csv_delimiter);
+    ret_code = read_csv_file(config->graph_file_path, &csv_matrix, &nb_row, &nb_col, config->csv_delimiter);
     if (ret_code != OK)
     {
         return ret_code;
     }
-    *nb_edges = nb_row;
+    graph->nb_edges = nb_row;
     // Assuming the maximum node index found is the number of node and that all node index are contiguous
-    *num_vertices = get_nb_node(csv_matrix, nb_row);
+    graph->nb_vertices = get_nb_node(csv_matrix, nb_row, config);
 
-    *graph_ref = (vertex_t **)calloc(*num_vertices, sizeof(vertex_t *));
-    vertex_t **graph = *graph_ref;
+    graph->vertex_array = (vertex_t **)calloc(graph->nb_vertices, sizeof(vertex_t *));
+
 
     // The number of rows is the exact number of edges in the csv file
-    *edge_array = (edge_t **)calloc(nb_row, sizeof(edge_t *));
+    graph->edge_array = (edge_t **)calloc(nb_row, sizeof(edge_t *));
 
     // Initialize each node
-    for (uint32_t i = 0; i < *num_vertices; i++)
+    for (uint32_t i = 0; i < graph->nb_vertices; i++)
     {
-        graph[i] = calloc(1, sizeof(vertex_t));
-        graph[i]->nb_edges_in = 0;
-        graph[i]->max_edges_in = DEFAULT_NEIGHBOURS;
-        graph[i]->in_edges = calloc(1, sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
-        graph[i]->nb_edges_out = 0;
-        graph[i]->max_edges_out = DEFAULT_NEIGHBOURS;
-        graph[i]->out_edges = calloc(1, sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
-        graph[i]->id = i;
+        graph->vertex_array[i] = calloc(1, sizeof(vertex_t));
+        graph->vertex_array[i]->nb_edges_in = 0;
+        graph->vertex_array[i]->max_edges_in = DEFAULT_NEIGHBOURS;
+        graph->vertex_array[i]->in_edges = calloc(1, sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        graph->vertex_array[i]->nb_edges_out = 0;
+        graph->vertex_array[i]->max_edges_out = DEFAULT_NEIGHBOURS;
+        graph->vertex_array[i]->out_edges = calloc(1, sizeof(edge_t *) * DEFAULT_NEIGHBOURS);
+        graph->vertex_array[i]->id = i;
     }
 
     // start at one because first line is header
     for (uint32_t i = 0; i < nb_row; i++)
     {
-        node_i = atoi(csv_matrix[i][G_NODEI_INDEX]);
-        node_j = atoi(csv_matrix[i][G_NODEJ_INDEX]);
+        node_i = atoi(csv_matrix[i][config->graph_indexes.node_i]);
+        node_j = atoi(csv_matrix[i][config->graph_indexes.node_j]);
 
         ret_code = create_edge(
-            atoi(csv_matrix[i][G_ID_INDEX]), &(*edge_array)[i],
-            atof(csv_matrix[i][G_DISTANCE_INDEX]),
-            atof(csv_matrix[i][G_DANGER_INDEX]),
-            graph[node_i],
-            graph[node_j]);
+            atoi(csv_matrix[i][config->graph_indexes.edge_id]), &graph->edge_array[i],
+            atof(csv_matrix[i][config->graph_indexes.distance]),
+            atof(csv_matrix[i][config->graph_indexes.danger]),
+            graph->vertex_array[node_i],
+            graph->vertex_array[node_j]);
 
         if (ret_code != OK)
         {
@@ -125,52 +123,14 @@ int get_graph(cifre_conf_t * config,vertex_t ***graph_ref, edge_t ***edge_array,
     return OK;
 }
 
-int get_graph_cuda(cifre_conf_t * config,vertex_cuda_t **graph_ref, uint32_t *num_vertices)
-{
-    // printf("lets go\n");
-    unsigned int node_i, node_j;
-    uint32_t nb_col, nb_row;
-    char ***csv_matrix;
-    int ret_code;
-    ret_code = readCSVFile(config->graph_file_path, &csv_matrix, &nb_row, &nb_col, config->csv_delimiter);
-    if (ret_code != OK)
-    {
-        return ret_code;
-    }
-    // Assuming the maximum node index found is the number of node and that all node index are contiguous
-    *num_vertices = get_nb_node(csv_matrix, nb_row);
-    // printf("before\n");
-    *graph_ref = (vertex_cuda_t *)calloc((*num_vertices)*(*num_vertices), sizeof(vertex_cuda_t));
-    // *graph_ref = (vertex_cuda_t **)calloc((*num_vertices)*(*num_vertices), sizeof(vertex_cuda_t *));
-    vertex_cuda_t *graph = *graph_ref;
-    // The number of rows is the exact number of edges in the csv file
-    // printf("after\n");
-    // Initialize each node
 
-    for (uint64_t i = 0; i < (*num_vertices)*(*num_vertices); i++)
-    {
-        graph[i].danger = DBL_MAX;
-        graph[i].distance = DBL_MAX;
-    }
-
-    for (uint32_t i = 1; i < nb_row; i++)
-    {
-        // printf("loop\n");
-        node_i = atoi(csv_matrix[i][G_NODEI_INDEX]);
-        node_j = atoi(csv_matrix[i][G_NODEJ_INDEX]);
-        // if(graph[node_i]==NULL){
-        //     graph[node_i] = calloc(*num_vertices, sizeof(vertex_cuda_t));
-        // }
-        graph[(node_i * (*num_vertices)) +node_j].distance = atof(csv_matrix[i][G_DISTANCE_INDEX]);
-        graph[(node_i * (*num_vertices)) +node_j].danger = atof(csv_matrix[i][G_DANGER_INDEX]);
-        // printf("ni %d nj %d dist %f\n",node_i,node_j,graph[(node_i * (*num_vertices)) +node_j].distance);
-        // break;
-    }
-    freeCSVMatrix(csv_matrix, nb_row, nb_col);
-    return OK;
+void free_graph(graph_t * graph){
+    free_vertex_array(graph->vertex_array, graph->nb_vertices);
+    free_edge(graph->edge_array, graph->nb_edges);
 }
 
-void free_graph(vertex_t **graph, int num_vertices)
+
+void free_vertex_array(vertex_t **graph, int num_vertices)
 {
     for (int i = 0; i < num_vertices; i++)
     {

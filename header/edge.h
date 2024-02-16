@@ -33,22 +33,24 @@ typedef struct edge_t {
     struct vertex_t *pred;
 } edge_t;
 
+typedef struct graph_t {
+    vertex_t **vertex_array;
+    edge_t **edge_array;
+    uint32_t nb_vertices;
+    uint32_t nb_edges;
+}graph_t;
 
-#define G_ID_INDEX 0
-#define G_NODEI_INDEX 1
-#define G_NODEJ_INDEX 2
-#define G_DISTANCE_INDEX 3
-#define G_DANGER_INDEX 4
-#define G_AMENAGEMENT_INDEX 5
 
-#define DEFAULT_NEIGHBOURS 20 // by experiences it seems that there is rarely ever a node with more than 20 neighbours
 
-int get_graph_cuda(cifre_conf_t * config,vertex_cuda_t **graph_ref, uint32_t *num_vertices);
+#define DEFAULT_NEIGHBOURS 20 // by experiences it seems that there is rarely ever a node with more than 20 neighbors
+
+int get_graph_cuda(config_t * config,vertex_cuda_t **graph_ref, uint32_t *num_vertices);
 edge_t* get_edge_if_exist(vertex_t ** graph,uint32_t vertex_source, uint32_t vertex_dest);
-uint32_t get_nb_node(char*** csv_matrix, uint32_t nb_row);
+uint32_t get_nb_node(char*** csv_matrix, uint32_t nb_row,config_t * config);
 int create_edge(uint32_t id,edge_t **new_edge_ref, double dist, double danger, vertex_t *pred, vertex_t *succ);
-int get_graph(cifre_conf_t *config, vertex_t ***graph_ref, edge_t*** edge_array, uint32_t *num_vertices, uint32_t *nb_edges);
-void free_graph(vertex_t **graph,int num_vertices);
+int get_graph(config_t *config, graph_t* graph);
+void free_vertex_array(vertex_t **graph,int num_vertices);
+void free_graph(graph_t * graph);
 void free_edge(edge_t **edge_array,int nb_edges);
 
 #endif //EDGE_H

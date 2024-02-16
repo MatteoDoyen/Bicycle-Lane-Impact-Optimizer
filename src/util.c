@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-int readCSVFile(const char *filename, char ****csv_matrix_ref, uint32_t *numRows, uint32_t *numCols, char *delimiter)
+int read_csv_file(const char *filename, char ****csv_matrix_ref, uint32_t *numRows, uint32_t *numCols, char *delimiter)
 {
     char ***matrix;
     FILE *file = fopen(filename, "r");

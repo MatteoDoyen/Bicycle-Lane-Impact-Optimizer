@@ -7,11 +7,8 @@
 typedef struct thread_arg_t
 {
     path_t ** paths;
-    vertex_t** graph;
-    uint32_t nb_vertices;
-    uint32_t nb_edges;
+    graph_t* graph;
     uint32_t nb_paths;
-    edge_t ** edge_array;
     uint32_t thread_id;
     uint32_t offset;
     double_unsigned_list_t ** cost_diff_array;
@@ -22,6 +19,6 @@ typedef struct thread_arg_t
 }thread_arg_t;
 
 void *compute_optimize_for_budget_threaded(void *arg);
-int get_edges_to_optimize_for_budget_pthread(cifre_conf_t * config,long double *budget_used, double_unsigned_list_t **selected_edges);
+int get_edges_to_optimize_for_budget_pthread(config_t * config,long double *budget_used, double_unsigned_list_t **selected_edges);
 
 #endif // COMPUTE_EDGES_PTHREAD_H

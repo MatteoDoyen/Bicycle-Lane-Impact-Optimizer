@@ -51,19 +51,23 @@ int main(int argc, char const *argv[])
     clock_gettime(CLOCK_MONOTONIC, &start);
     ret = get_edges_to_optimize_for_budget(&config, &budget_used, &selected_edges);
     clock_gettime(CLOCK_MONOTONIC, &end);
+
     if (ret != OK)
     {
         budget_used = config.budget;
         pthread_join(progressBar, NULL);
         return 1;
     }
+    
     elapsed_time_thread = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
 
     copy_budget_used = budget_used;
     budget_used = config.budget;
     pthread_join(progressBar, NULL);
+    
     total_saved_cost = get_total_saved_cost(selected_edges);
     save_selected_edges(selected_edges,RESULT_DIRECTORY, result_file_name);
+
     free_double_unsigned_list_t(selected_edges);
 
     printf("Budget used         : %.4Lf/%.4Lf\n", copy_budget_used,config.budget);

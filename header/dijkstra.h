@@ -5,7 +5,7 @@
 #include "path.h"
 
 
-int min_distance_full_graph(double dist[], bool markedVertex[], int V);
+int min_distance_full_graph(double dist[], bool marked_vertex[], int V);
 double dijkstra_backward_full_graph(struct vertex_t **graph, int nb_vertices, double **dist_array_ref, int *parents, path_t *path);
 
 int min_distance(double dist[], unsigned_list_t *vertexToVisit);

@@ -35,11 +35,11 @@ void free_unsigned_list_t(unsigned_list_t *head);
 
 int read_csv_file(const char *filename,char **** csv_matrix, uint32_t *numRows, uint32_t *numCols, char *delimiter);
 uint32_t get_nb_list_t(char*** csv_matrix, uint32_t nb_row);
-void freeCSVMatrix(char ***matrix, int numRows, int numCols);
-int parseJsonIntegerArray(const char *json,unsigned int ** result_array_ref,  unsigned int * nb_element);
+void free_csv_matrix(char ***matrix, int numRows, int numCols);
+int parse_json_integer_array(const char *json,unsigned int ** result_array_ref,  unsigned int * nb_element);
 
-bool binary_search(uint32_t *arr, uint32_t size, uint32_t target);
-int parseAndSortJsonIntegerArray(const char *json, unsigned int **result_array_ref, unsigned int *nb_element);
+bool value_is_in_array(uint32_t *arr, uint32_t size, uint32_t target);
+int parse_and_sort_json_integer_array(const char *json, unsigned int **result_array_ref, unsigned int *nb_element);
 void quick_sort(unsigned int arr[], int low, int high);
 int partition(unsigned int arr[], int low, int high);
 void swap(unsigned int *a, unsigned int *b);

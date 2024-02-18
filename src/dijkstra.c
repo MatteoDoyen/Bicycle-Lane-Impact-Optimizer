@@ -15,31 +15,30 @@
  * - danger: a pointer to the danger value
  *
  * Returns:
- * - The calculated cost
+ * - The precomputed cost
  *
  * Note:
  * - Make sure to dereference the pointers before performing the calculations.
- * - The cost is calculated using the formula: (alpha * distance) + ((1 - alpha) * danger)
+ * - The cost is precomputed using the formula: (alpha * distance) + ((1 - alpha) * danger)
  *
  * Example usage:
  * - double alpha = 0.5;
  *   double distance = 10.0;
  *   double danger = 0.8;
- *   double cost = cost_function(&alpha, &distance, &danger);
+ *   double cost = cost_function(alpha, &distance, &danger);
  */
-double cost_function(double *alpha, double *distance, double *danger)
+double cost_function(double alpha, double *distance, double *danger)
 {
-    return ((*alpha) * (*distance)) + ((1 - (*alpha)) * (*danger));
+    return ((alpha) * (*distance)) + ((1 - (alpha)) * (*danger));
 }
 
 /**
  * Function: updated_dist
  * ----------------------------------
- * This function calculates the updated distance in the cached distance calculated by Dijkstra.
+ * This function calculates the updated distance in the cached distance precomputed by Dijkstra.
  *
  * Parameters:
  * - edge: Pointer to the edge structure.
- * - path: Pointer to the path structure.
  * - forward_dijkstra: Pointer to the array storing the forward Dijkstra distances.
  * - backward_dijkstra: Pointer to the array storing the backward Dijkstra distances.
  *
@@ -50,12 +49,12 @@ double cost_function(double *alpha, double *distance, double *danger)
  * - Make sure to update the distance of the vertex before calling this function.
  *
  * Example usage:
- * - double distance = updated_dist(&edge, &path, forward_dijkstra, backward_dijkstra);
+ * - double distance = updated_dist(&edge, forward_dijkstra, backward_dijkstra);
  */
-double updated_dist(edge_t *edge, path_t *path, double *forward_dijkstra, double *backward_dijkstra)
+double updated_dist(edge_t *edge, double *forward_dijkstra, double *backward_dijkstra)
 {
     // Here the cost function takes in twice the distance to simulate it's optimization
-    return forward_dijkstra[edge->pred->id] + cost_function(&path->profil, &edge->dist, &edge->dist) + backward_dijkstra[edge->succ->id];
+    return forward_dijkstra[edge->pred->id] + edge->dist + backward_dijkstra[edge->succ->id];
 }
 
 /*
@@ -139,7 +138,7 @@ double dijkstra_forward(graph_t *graph, double **dist_array_ref, int *parents, p
         {
             current_edge = current_vertex->out_edges[edge_i];
             dest_vertex_id = current_edge->succ->id;
-            current_cost = cost_function(&path->profil, &current_edge->dist, &current_edge->danger);
+            current_cost = cost_function(path->profil, &current_edge->dist, &current_edge->danger);
 
             // Ensure that the vertex is in the visibility, not marked and the new distance is less than the current distance
             if (vertex_is_in_visibilite(path, dest_vertex_id) && !marked_vertex[dest_vertex_id] && ((dist_array[min_dist_index] + current_cost) < dist_array[dest_vertex_id]))
@@ -245,7 +244,7 @@ double dijkstra_backward(graph_t *graph, double **dist_array_ref, int *parents, 
         {
             current_edge = current_vertex->in_edges[edge_i];
             dest_vertex_id = current_edge->pred->id;
-            current_cost = cost_function(&path->profil, &current_edge->dist, &current_edge->danger);
+            current_cost = cost_function(path->profil, &current_edge->dist, &current_edge->danger);
 
             // Ensure that the vertex is in the visibility, not marked and the new distance is less than the current distance
             if (vertex_is_in_visibilite(path, dest_vertex_id) && !marked_vertex[dest_vertex_id] && ((dist_array[min_dist_index] + current_cost) < dist_array[dest_vertex_id]))

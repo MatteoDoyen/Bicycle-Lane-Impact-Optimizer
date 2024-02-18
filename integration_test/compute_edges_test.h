@@ -1,0 +1,10 @@
+#ifndef COMPUTE_EDGES_TEST_H
+#define COMPUTE_EDGES_TEST_H
+void test_get_edges_to_optimize_for_budget_budget_over_max(void);
+void test_get_edges_to_optimize_for_budget_no_budget(void);
+void test_get_edges_to_optimize_for_budget_no_edge(void);
+void test_get_edges_to_optimize_for_budget_multiple_edges(void);
+void test_get_edges_to_optimize_for_budget_one_edge(void);
+void test_get_edges_to_optimize_for_budget_vs_precomputed(void);
+
+#endif  // COMPUTE_EDGES_TEST_H

@@ -132,7 +132,7 @@ int get_edges_to_optimize_for_budget(config_t *config, long double *budget_used,
                     if (edge_is_in_visibilite(paths[path_id], graph.edge_array[edge_id]) && (graph.edge_array[edge_id]->dist != graph.edge_array[edge_id]->danger))
                     {
 
-                        new_dijkstra_cost = updated_dist(graph.edge_array[edge_id], paths[path_id], dijkstra_forward_dist, dijkstra_backward_dist);
+                        new_dijkstra_cost = updated_dist(graph.edge_array[edge_id], dijkstra_forward_dist, dijkstra_backward_dist);
 
                         if (dijkstra_cost > new_dijkstra_cost)
                         {

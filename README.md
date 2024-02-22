@@ -1,49 +1,62 @@
-# Bicycle Improvement Design Problem
+# Bicycle Lane Impact Optimizer
+## Overview
+The Bicycle Lane Impact Optimizer is an innovative solution developed as part of a collaborative student research project under the guidance of Mr. Néron, Mr Repusseau and Ms. Rault. 
 
-This project aims to help find how to maximize the impact the addition of a bicycle lane to a road would have within an town.
+This solution is designed to maximize the benefits of introducing bicycle lanes within urban environments. Utilizing advanced algorithms, this software tool analyzes road networks to identify the most impactful roads for bicycle lane improvements under constrained budgets. 
 
-Given a set budget (maximum distance of roads that can be improved) the executable will output
-- the ids of the roads to improve
-- the impact each would have if improved
+The output is a strategic plan that prioritizes road improvements based on their potential impact, facilitating efficient resource allocation for urban planners and transportation authorities.
 
-To find wich roads should be improved, the solution takes in :
-- a graph representing all the different roads and their connexions
-- a list of known paths used by cyclists
 
-The solution then "improves" a road, recalculate the paths who have the said road within their visibility and compare the new "cost" to the old cost of the paths. If the costs is smaller it is added to the total costs saved by improving the road. If the improvement of the road had a non-null impact the graph is updated to take in this improvement.
+## System Requirements
 
-### How to calculate the "costs" of a path ?
-We use the dijkstra algorithm to find the shortest path between the origin and the destination of a path, the algorithm only compute a limited graph (only includes the road in the visibility of the paths).
-The cost function of dijkstra is :
-```
-alpha * distance + (alpha-1)*danger
-```
-Each path has their own alpha (according to the importance each cyclists gives to the improvement of a road).
+### Windows
+- Supported OS: Windows 10
+- Required Tools: Cygwin (for POSIX compatibility), Make, GCC (GNU Compiler Collection), pthreads (POSIX Threads)
 
-# Dependencies
-## Outside tools
-This project uses :
-- Unity (a c test framework)
-- CJson (a c parser for Json)
+### Linux
+- Compatible with most Linux distributions
+- Required Packages: GCC, Make
 
-## Windows
-This project uses "pthreads" which are posix dependent, to create a Windows executable you use cygwin wich implement it's own layer of translation between Posix and windows functions
-> Link to cygwin
-> This project was only tested on Windows 10
+## Dependencies
+### External Libraries
+- Unity: A lightweight, powerful unit testing framework for C.
+- CJson: A robust C library for parsing JSON data.
 
-You will then need to install :
-- make
-- gcc
-- pthread
+### POSIX Threads
+- Windows: POSIX Thread support is facilitated through Cygwin.
+- Linux: Native support for pthreads.
+### OpenMP
 
-## Linux
-The only dependencies are `gcc` and `make`
+- Windows: OpenMP support is enabled through Cygwin by installing the appropriate GCC package that includes OpenMP.
+- Linux: Most GCC installations include OpenMP support by default. Ensure your GCC version supports OpenMP.
+
+## Installation Guide
+### Setting Up the Environment
+#### Windows
+
+Cygwin Installation: Install Cygwin from the [official Cygwin website](https://www.cygwin.com/). During installation, select the gcc, make, pthread, and libgomp (for OpenMP support) packages.
+
+#### Linux
+
+Installing Dependencies: Use the following command to install the necessary packages:
+
 ```sh
-$ apt install make gcc -y
+sudo apt install make gcc -y
 ```
-
-# Compile and start
+### Compilation Instructions
+Navigate to the project directory.
+Execute the make all command to compile the project. This will generate the executable file cifre.
+### Execution
+To run the Bicycle Lane Impact Optimizer, use the following command:
 ```sh
-make all
-./cifre $(conf_file)
+./cifre <configuration_file>
 ```
+Where <configuration_file> is the path to a JSON configuration file specifying the parameters and data for the analysis.
+
+## Output
+The program generates a file containing:
+
+- The IDs of the recommended roads for improvement.
+- The estimated impact of improving each road.
+
+This output enables decision-makers to strategically plan bicycle lane implementations with a clear understanding of their potential benefits.

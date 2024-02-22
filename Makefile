@@ -15,7 +15,7 @@ SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
 OBJ_FILES = $(SRC_FILES:$(SRC_DIR)/%.c=%.o)
 
 # Executable name
-TARGET = cifre
+TARGET = BikePathOptimizer
 
 # Build rule
 all: $(TARGET)

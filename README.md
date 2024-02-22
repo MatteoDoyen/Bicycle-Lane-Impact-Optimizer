@@ -45,11 +45,11 @@ sudo apt install make gcc -y
 ```
 ### Compilation Instructions
 Navigate to the project directory.
-Execute the make all command to compile the project. This will generate the executable file cifre.
+Execute the make all command to compile the project. This will generate the executable file BikePathOptimizer.
 ### Execution
 To run the Bicycle Lane Impact Optimizer, use the following command:
 ```sh
-./cifre <configuration_file>
+./BikePathOptimizer <configuration_file>
 ```
 Where <configuration_file> is the path to a JSON configuration file specifying the parameters and data for the analysis.
 

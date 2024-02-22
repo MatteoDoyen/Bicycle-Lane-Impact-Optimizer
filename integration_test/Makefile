@@ -17,7 +17,7 @@ SRC_FILES = $(wildcard $(TEST_DIR)/*.c) $(filter-out $(SRC_DIR)/main.c, $(wildca
 OBJ_FILES = $(SRC_FILES:$(SRC_DIR)/%.c=%.o)
 
 # Executable name
-TARGET = test_cifre
+TARGET = test_BikePathOptimizer
 
 # Build rule
 all: $(TARGET)

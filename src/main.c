@@ -26,7 +26,7 @@ int main(int argc, char const *argv[])
 
     if (argc != 2)
     {
-        fprintf(stderr, "wrong number of arguments, usage : ./cifre $(config_file_path)\n");
+        fprintf(stderr, "wrong number of arguments, usage : ./BikePathOptimizer $(config_file_path)\n");
         return 1;
     }
 

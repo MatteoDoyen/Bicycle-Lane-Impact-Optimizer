@@ -56,7 +56,7 @@ int get_edges_to_optimize_for_budget(config_t *config, long double *budget_used,
     bool stop = false;
     uint32_t t_it;
     uint32_t path_id;
-
+    
     ret_code = get_graph(config, &graph);
     if (ret_code != OK)
     {
@@ -99,7 +99,7 @@ int get_edges_to_optimize_for_budget(config_t *config, long double *budget_used,
 
     omp_set_num_threads(config->thread_number);
 
-    while (!stop)
+        while (!stop)
     {
         // this function assigns the traces to the threads
         assign_traces_to_threads(config, paths, nb_paths, &path_list, impact);
@@ -177,7 +177,7 @@ int get_edges_to_optimize_for_budget(config_t *config, long double *budget_used,
             budget_left = budget_left - graph.edge_array[edge_id_to_optimize]->dist;
             *budget_used = config->budget - budget_left;
             graph.edge_array[edge_id_to_optimize]->danger = graph.edge_array[edge_id_to_optimize]->dist;
-        }
+}
     }
     free_path_list(config, path_list);
     free(impact);
@@ -469,7 +469,7 @@ void free_cost_diff_array(double_unsigned_list_t **array, uint32_t nb_paths){
 void get_max_edge_to_optimize(double_unsigned_list_t **diff_array, uint32_t nb_paths, graph_t * graph, int *edge_id_to_optimize, long double *saved_cost, long double budget_left)
 {
     long double max_cost_saved = 0;
-    uint32_t max_cost_edge_id;
+    uint32_t max_cost_edge_id=-1;
     long double *edge_cost_saved = calloc(graph->nb_edges, sizeof(long double));
     double_unsigned_list_t *temp;
 

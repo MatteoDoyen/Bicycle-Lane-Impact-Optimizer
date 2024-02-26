@@ -38,7 +38,7 @@
  * }
  * ```
  */
-int get_config(char const *config_file_path,config_t *conf_ref)
+int get_config(char const *config_file_path, config_t *conf_ref)
 {
     cJSON *path_indexes_dict;
     cJSON *graph_indexes_dict;
@@ -51,8 +51,24 @@ int get_config(char const *config_file_path,config_t *conf_ref)
         return FILE_OPENING_ERROR;
     }
     // Read the file into a buffer
-    fread(buffer, 1, sizeof(buffer), fp);
+    size_t bytesRead = fread(buffer, 1, sizeof(buffer), fp);
     fclose(fp);
+
+    if (bytesRead == 0 && ferror(fp))
+    {
+        fprintf(stderr, "Error reading the file\n");
+        return FILE_READING_ERROR;
+    }
+    else if (bytesRead == 0 && feof(fp))
+    {
+        fprintf(stderr, "Error: file is empty\n");
+        return FILE_EMPTY_ERROR;
+    }
+    else
+    {
+        buffer[bytesRead] = '\0'; // Null-terminate the string in the buffer
+    }
+
     cJSON *json = cJSON_Parse(buffer);
 
     if (json == NULL)
@@ -132,7 +148,8 @@ int get_config(char const *config_file_path,config_t *conf_ref)
  * // code to initialize myConfig
  * free_config(&myConfig);
  */
-void free_config(config_t *config){
+void free_config(config_t *config)
+{
     free(config->paths_file_path);
     free(config->graph_file_path);
     free(config->csv_delimiter);
@@ -159,8 +176,8 @@ int get_double_in_json(cJSON *json_object, char *item_key, long double *value)
 {
     cJSON *current_item = cJSON_GetObjectItem(json_object, item_key);
     if (current_item == NULL || !cJSON_IsNumber(current_item))
-    {   
-        fprintf(stderr, "Error : item %s should be a number\n",item_key);
+    {
+        fprintf(stderr, "Error : item %s should be a number\n", item_key);
         cJSON_Delete(json_object);
         return 1;
     }
@@ -190,11 +207,11 @@ int get_uint_in_json(cJSON *json_object, char *item_key, uint32_t *value)
     cJSON *current_item = cJSON_GetObjectItem(json_object, item_key);
     if (current_item == NULL || !cJSON_IsNumber(current_item))
     {
-        fprintf(stderr, "Error : item %s should be a number\n",item_key);
+        fprintf(stderr, "Error : item %s should be a number\n", item_key);
         cJSON_Delete(json_object);
         return 1;
     }
-    *value = (uint32_t) current_item->valueint;
+    *value = (uint32_t)current_item->valueint;
     return 0;
 }
 
@@ -220,7 +237,7 @@ int get_string_in_json(cJSON *json_object, char *item_key, char **value)
     cJSON *current_item = cJSON_GetObjectItem(json_object, item_key);
     if (current_item == NULL || !cJSON_IsString(current_item) || current_item->valuestring == NULL)
     {
-        fprintf(stderr, "Error : item %s should be a string\n",item_key);
+        fprintf(stderr, "Error : item %s should be a string\n", item_key);
         cJSON_Delete(json_object);
         return 1;
     }

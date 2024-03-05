@@ -53,7 +53,7 @@ double cost_function(double alpha, double *distance, double *danger)
  */
 double updated_dist(edge_t *edge, double *forward_dijkstra, double *backward_dijkstra)
 {
-    // Here the cost function takes in twice the distance to simulate it's optimization
+    // An optimized edge's weight is just its distance
     return forward_dijkstra[edge->pred->id] + edge->dist + backward_dijkstra[edge->succ->id];
 }
 
@@ -113,8 +113,11 @@ double dijkstra_forward(graph_t *graph, double **dist_array_ref, int *parents, p
     for (unsigned int i = 0; i < graph->vertex_array[origin]->nb_edges_out; i++)
     {
         dest_vertex_id = graph->vertex_array[origin]->out_edges[i]->succ->id;
-        visitable_vertex[dest_vertex_id] = true;
-        add_unsigned_list_t(&vertices_to_visit, dest_vertex_id);
+        if (vertex_is_in_visibilite(path, dest_vertex_id))
+        {
+            visitable_vertex[dest_vertex_id] = true;
+            add_unsigned_list_t(&vertices_to_visit, dest_vertex_id);
+        }
     }
 
     // Find the shortest path for all vertices in the visibility
@@ -218,8 +221,11 @@ double dijkstra_backward(graph_t *graph, double **dist_array_ref, int *parents, 
     for (unsigned int i = 0; i < graph->vertex_array[origin]->nb_edges_in; i++)
     {
         dest_vertex_id = graph->vertex_array[origin]->in_edges[i]->pred->id;
-        visitable_vertex[dest_vertex_id] = true;
-        add_unsigned_list_t(&vertices_to_visit, dest_vertex_id);
+        if (vertex_is_in_visibilite(path, dest_vertex_id))
+        {
+            visitable_vertex[dest_vertex_id] = true;
+            add_unsigned_list_t(&vertices_to_visit, dest_vertex_id);
+        }
     }
 
     // Find the shortest path for all vertices
@@ -233,7 +239,7 @@ double dijkstra_backward(graph_t *graph, double **dist_array_ref, int *parents, 
         }
         // Mark the picked vertex as processed
         marked_vertex[min_dist_index] = true;
-        
+
         // Remove the picked vertex from the list of vertices to visit
         delete_value_in_unsigned_list(&vertices_to_visit, min_dist_index);
 
@@ -270,20 +276,20 @@ double dijkstra_backward(graph_t *graph, double **dist_array_ref, int *parents, 
 }
 
 /*
-* Function: min_distance
-* ----------------------------------   
-* This function returns the index of the vertex with the minimum distance from the origin vertex.
-*
-* Parameters:
-* - dist: The array of distances.
-* - vertexToVisit: Pointer to the list of vertices to visit.
-*
-* Returns:
-* - The index of the vertex with the minimum distance from the origin vertex.
-*
-* Example usage:
-* - int min_index = min_distance(dist, vertexToVisit);
-*/
+ * Function: min_distance
+ * ----------------------------------
+ * This function returns the index of the vertex with the minimum distance from the origin vertex.
+ *
+ * Parameters:
+ * - dist: The array of distances.
+ * - vertexToVisit: Pointer to the list of vertices to visit.
+ *
+ * Returns:
+ * - The index of the vertex with the minimum distance from the origin vertex.
+ *
+ * Example usage:
+ * - int min_index = min_distance(dist, vertexToVisit);
+ */
 int min_distance(double dist[], unsigned_list_t *vertexToVisit)
 {
     double min = DBL_MAX;

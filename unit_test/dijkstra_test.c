@@ -28,7 +28,7 @@ void test_dijkstra_forward_no_path(void)
     int *parents = calloc(graph.nb_vertices, sizeof(int));
 
     // Call the dijkstra_forward function
-    double cost = dijkstra_forward(&graph, &dist_array, parents, &path);
+    double cost = dijkstra_bidirectional(&graph, &dist_array, parents, &path,true);
 
     int expected_parents[] = {-1, 0, 0};
     double expected_dist_array [] = {0, DBL_MAX, DBL_MAX};
@@ -80,7 +80,7 @@ void test_dijkstra_forward_one_vertex(void){
     int *parents = calloc(graph.nb_vertices, sizeof(int));
 
     // Call the dijkstra_forward function
-    double cost = dijkstra_forward(&graph, &dist_array, parents, &path);
+    double cost = dijkstra_bidirectional(&graph, &dist_array, parents, &path,true);
 
     // Check the results
     int expected_parents[] = {-1};
@@ -146,7 +146,7 @@ void test_dijkstra_forward_two_vertex(void){
     int *parents = calloc(graph.nb_vertices, sizeof(int));
 
     // Call the dijkstra_forward function
-    double cost = dijkstra_forward(&graph, &dist_array, parents, &path);
+    double cost = dijkstra_bidirectional(&graph, &dist_array, parents, &path,true);
 
     // Check the results
     int expected_parents[] = {-1, 0};
@@ -219,7 +219,7 @@ void test_dijkstra_forward_straight_line(void)
     int *parents = calloc(graph.nb_vertices, sizeof(int));
 
     // Call the dijkstra_forward function
-    double cost = dijkstra_forward(&graph, &dist_array, parents, &path);
+    double cost = dijkstra_bidirectional(&graph, &dist_array, parents, &path,true);
 
     // Check the results
     int expected_parents[] = {-1, 0, 1, 2, 3};
@@ -303,7 +303,7 @@ void test_dijkstra_forward_complex_graph(void)
     int *parents = calloc(graph.nb_vertices, sizeof(int));
 
     // Call the dijkstra_forward function
-    double cost = dijkstra_forward(&graph, &dist_array, parents, &path);
+    double cost = dijkstra_bidirectional(&graph, &dist_array, parents, &path,true);
     int expected_parents[] = {-1, 0, 1, 4, 0, 4, 5,6,7,8};
     double expected_dist_array[] =  {0, 1.2, 3.7, 4.6, 0.5, 5.9,12.6,20.5,28.7,38.2};
     TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(expected_cost, cost, "cost is not correct");
@@ -369,7 +369,7 @@ void test_dijkstra_forward_negative_edge(void)
     graph.vertex_array[0]->out_edges[0] = negative_edge;
 
     // Call the dijkstra_forward function
-    dijkstra_forward(&graph, &dist_array, parents, &path);
+    dijkstra_bidirectional(&graph, &dist_array, parents, &path,true);
 
     // Check the results
     double expected_dist_array[] = {0, DBL_MAX, DBL_MAX};
@@ -417,7 +417,7 @@ void test_dijkstra_backward_no_path(void)
     int *parents = calloc(graph.nb_vertices, sizeof(int));
 
     // Call the dijkstra_forward function
-    double cost = dijkstra_backward(&graph, &dist_array, parents, &path);
+    double cost = dijkstra_bidirectional(&graph, &dist_array, parents, &path,false);
 
     int expected_parents[] = {0, 0, -1};
     double expected_dist_array [] = {DBL_MAX, DBL_MAX, 0};
@@ -469,7 +469,7 @@ void test_dijkstra_backward_one_vertex(void){
     int *parents = calloc(graph.nb_vertices, sizeof(int));
 
     // Call the dijkstra_backward function
-    double cost = dijkstra_backward(&graph, &dist_array, parents, &path);
+    double cost = dijkstra_bidirectional(&graph, &dist_array, parents, &path,false);
 
     // Check the results
     int expected_parents[] = {-1};
@@ -535,7 +535,7 @@ void test_dijkstra_backward_two_vertex(void){
     int *parents = calloc(graph.nb_vertices, sizeof(int));
 
     // Call the dijkstra_backward function
-    double cost = dijkstra_backward(&graph, &dist_array, parents, &path);
+    double cost = dijkstra_bidirectional(&graph, &dist_array, parents, &path,false);
 
     // Check the results
     int expected_parents[] = {1, -1};
@@ -608,7 +608,7 @@ void test_dijkstra_backward_straight_line(void)
     int *parents = calloc(graph.nb_vertices, sizeof(int));
 
     // Call the dijkstra_backward function
-    double cost = dijkstra_backward(&graph, &dist_array, parents, &path);
+    double cost = dijkstra_bidirectional(&graph, &dist_array, parents, &path,false);
 
     // Check the results
     int expected_parents[] = {1, 2, 3, 4, -1};
@@ -692,7 +692,7 @@ void test_dijkstra_backward_complex_graph(void)
     int *parents = calloc(graph.nb_vertices, sizeof(int));
 
     // Call the dijkstra_forward function
-    double cost = dijkstra_backward(&graph, &dist_array, parents, &path);
+    double cost = dijkstra_bidirectional(&graph, &dist_array, parents, &path,false);
     int expected_parents[] = {4,0,1,4,5,6,7,8,-1,8};
     double expected_dist_array[] =  {28.7,29.9,32.4,32.3,28.2,22.8,16.1,8.2,0,9.5};
     TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(expected_cost, cost, "cost is not correct");
@@ -758,7 +758,7 @@ void test_dijkstra_backward_negative_edge(void)
     graph.vertex_array[0]->out_edges[0] = negative_edge;
 
     // Call the dijkstra_backward function
-    dijkstra_backward(&graph, &dist_array, parents, &path);
+    dijkstra_bidirectional(&graph, &dist_array, parents, &path,false);
 
     // Check the results
     double expected_dist_array[] = {DBL_MAX, DBL_MAX, 0};

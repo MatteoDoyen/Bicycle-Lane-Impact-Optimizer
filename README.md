@@ -1,4 +1,11 @@
-# Bicycle Lane Impact Optimizer
+<h1 align="center">
+  <br>
+  <img src="./images/header.png" alt="road_graph" width="800">
+  <br>
+  <b>Bicycle Lane Impact Optimizer</b>
+  <br>
+</h1>
+
 ## Overview
 The Bicycle Lane Impact Optimizer is an innovative solution developed as part of a collaborative student research project under the guidance of Mr. Néron, Mr Repusseau and Ms. Rault. 
 

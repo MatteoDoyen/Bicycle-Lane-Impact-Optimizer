@@ -58,24 +58,14 @@ int get_edges_to_optimize_for_budget(config_t *config, long double *budget_used,
     uint32_t path_id;
     
     ret_code = get_graph(config, &graph);
-    if (ret_code != OK)
-    {
-        return ret_code;
-    }
+    if (ret_code != OK) goto exit_fn;
     ret_code = get_paths(config, &paths, &nb_paths);
-    if (ret_code != OK)
-    {
-        free_graph(&graph);
-        return ret_code;
-    }
-
+    if (ret_code != OK) goto clean_up_graph;
     bool *impact = calloc(nb_paths, sizeof(bool));
     if (impact == NULL)
     {
-        free_graph(&graph);
-        free_paths(paths, nb_paths);
-        fprintf(stderr, "Memory allocation failed for impact array\n");
-        return MEMORY_ALLOC_ERROR;
+        ret_code = MEMORY_ALLOC_ERROR;
+        goto clean_up_path;
     }
 
     // Initialize the impact array to true so that all the paths are considered
@@ -88,14 +78,7 @@ int get_edges_to_optimize_for_budget(config_t *config, long double *budget_used,
     // for a given path
     double_unsigned_list_t **cost_diff_array;
     ret_code = init_cost_diff_array(&cost_diff_array, nb_paths);
-    if (ret_code != OK)
-    {
-        free_graph(&graph);
-        free_paths(paths, nb_paths);
-        free(impact);
-        fprintf(stderr, "Memory allocation failed for cost_diff_array array\n");
-        return MEMORY_ALLOC_ERROR;
-    }
+    if (ret_code != OK) goto clean_up_impact;
 
     omp_set_num_threads(config->thread_number);
 
@@ -168,23 +151,25 @@ int get_edges_to_optimize_for_budget(config_t *config, long double *budget_used,
             ret_code = add_double_unsigned_list_t(selected_edges, graph.edge_array[edge_id_to_optimize]->id, max_saved_cost);
             if (ret_code != OK)
             {
-                free(impact);
-                free_graph(&graph);
-                free_paths(paths, nb_paths);
                 free_double_unsigned_list_t(*selected_edges);
-                return ret_code;
+                *selected_edges = NULL;
+                goto clean_up_impact;
             }
             budget_left = budget_left - graph.edge_array[edge_id_to_optimize]->dist;
             *budget_used = config->budget - budget_left;
             graph.edge_array[edge_id_to_optimize]->danger = graph.edge_array[edge_id_to_optimize]->dist;
 }
     }
-    free_path_list(config, path_list);
-    free(impact);
-    free_graph(&graph);
-    free_paths(paths, nb_paths);
     free_cost_diff_array(cost_diff_array, nb_paths);
-    return OK;
+    free_path_list(config, path_list);
+clean_up_impact:
+    free(impact);
+clean_up_path:
+    free_paths(paths, nb_paths);
+clean_up_graph:
+    free_graph(&graph);
+exit_fn:
+    return ret_code;
 }
 
 /**

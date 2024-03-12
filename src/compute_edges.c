@@ -118,8 +118,8 @@ int get_edges_to_optimize_for_budget(config_t *config, long double *budget_used,
 
                 //  Calculating the dijkstra path backward and forward allows for
                 //  a much faster computing of the impact of the improvement of an edge
-                dijkstra_cost = dijkstra_backward(&graph, &dijkstra_backward_dist, NULL, paths[path_id]);
-                dijkstra_forward(&graph, &dijkstra_forward_dist, NULL, paths[path_id]);
+                dijkstra_cost = dijkstra_bidirectional(&graph, &dijkstra_backward_dist, NULL, paths[path_id],false);
+                dijkstra_bidirectional(&graph, &dijkstra_forward_dist, NULL, paths[path_id],true);
 
                 for (uint32_t edge_id = 0; edge_id < graph.nb_edges; edge_id++)
                 {

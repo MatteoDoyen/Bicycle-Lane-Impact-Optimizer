@@ -45,8 +45,8 @@ void test_dijkstra_forward_vs_backward_path(void)
 
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        cost = dijkstra_forward(&graph, &dist_array_forward, parent_array_forward, paths[i]);
-        dijkstra_backward(&graph, &dist_array_backward, parent_array_backward, paths[i]);
+        cost = dijkstra_bidirectional(&graph, &dist_array_forward, parent_array_forward, paths[i],true);
+        dijkstra_bidirectional(&graph, &dist_array_backward, parent_array_backward, paths[i],false);
         // used to get the number of element
         // when current=-1 there is no parent and the previous current is equal to the
         // destination for backward dijkstra
@@ -99,8 +99,8 @@ void test_dijkstra_forward_vs_backward_cost(void)
 
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        cost_forward = dijkstra_forward(&graph, &dist_array_forward, NULL, paths[i]);
-        cost_backward = dijkstra_backward(&graph,&dist_array_backward, NULL, paths[i]);
+        cost_forward = dijkstra_bidirectional(&graph, &dist_array_forward, NULL, paths[i],true);
+        cost_backward = dijkstra_bidirectional(&graph,&dist_array_backward, NULL, paths[i],false);
 
         sprintf(str, "path %d failed, incorrect cps precomputed", i);
         TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.001, cost_forward, cost_backward, str);
@@ -131,7 +131,7 @@ void test_dijkstra_forward_vs_precomputed_data_cost(void)
     dist_array = calloc(graph.nb_vertices, sizeof(double));
     for (uint32_t i = 0; i < nb_paths; i++)
     {
-        cost = dijkstra_forward(&graph, &dist_array, NULL, paths[i]);
+        cost = dijkstra_bidirectional(&graph, &dist_array, NULL, paths[i],true);
         expected_cost = calc_path_cps(paths[i]->cps_dijkstra_dist, paths[i]->cps_dijkstra_danger, paths[i]->profil);
 
         sprintf(str, "path %d failed, incorrect cps precomputed", i);
@@ -170,7 +170,7 @@ void test_dijkstra_forward_vs_precomputed_data_path(void)
     for (uint32_t path_id = 0; path_id < nb_paths; path_id++)
     {
         sprintf(str, "path %d failed", path_id);
-        dijkstra_forward(&graph,&dist_array, parents_array, paths[path_id]);
+        dijkstra_bidirectional(&graph,&dist_array, parents_array, paths[path_id],true);
         current = paths[path_id]->destination;
         vertex_index = paths[path_id]->nb_dijkstra_sp-1;
         while(current!=-1 && (vertex_index >= 0)){
